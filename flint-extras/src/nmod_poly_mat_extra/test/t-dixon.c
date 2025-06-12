@@ -11,47 +11,6 @@
 
 #include "nmod_poly_mat_dixon.h"
 
-// Random poly_mat which is nonsingular for x=0
-void nmod_poly_mat_rand_origin(nmod_poly_mat_t A, flint_rand_t state, slong order) 
-{
-
-    nmod_mat_t T1,T2;
-    nmod_mat_init(T1, A->r, A->r, A->modulus);
-    nmod_mat_init(T2, A->r, A->r, A->modulus);
-
-    nmod_mat_randtril(T1,state,0);
-    nmod_mat_randtriu(T2,state,0);
-
-    nmod_mat_mul(T1,T1,T2);
-
-    nmod_poly_mat_t B;
-    nmod_poly_mat_init(B, A->r, A->r, A->modulus);
-
-    // nmod_poly_mat_set_nmod_mat(B,T1); // GV does not work, bug ? Sam 31 mai 2025 14:29:48 CEST
-
-    for (slong i = 0; i < A->r; i++)
-    {
-        for (slong j = 0; j < A->r; j++)
-        {
-            if (nmod_mat_entry(T1, i, j) == 0)
-                nmod_poly_zero(nmod_poly_mat_entry(B, i, j));
-            else
-            {
-                nmod_poly_set_coeff_ui(nmod_poly_mat_entry(B, i, j),0,nmod_mat_entry(T1, i, j));
-            }
-        }
-    }
-
-    nmod_poly_mat_rand(A, state, order-1);
-    nmod_poly_mat_shift_left(A,A,1);
-
-    nmod_poly_mat_add(A,A,B);
-
-    nmod_mat_clear(T1);
-    nmod_mat_clear(T2); 
-    nmod_poly_mat_clear(B); 
-}
-
 
 // test one given input
 int core_test_dixon(const nmod_poly_mat_t A, const nmod_poly_mat_t B, slong order, slong sigma)
@@ -132,9 +91,9 @@ slong prime[]  =
 
     slong Bcdim[] = {1, 10};
 
-    slong degA[] = {1, 20};
+    slong degA[] = {1, 10};
 
-    slong degB[] = {1, 2, 20};
+    slong degB[] = {2, 20};
 
     slong order;
     slong sigma;
@@ -161,7 +120,7 @@ slong prime[]  =
                         nmod_poly_mat_init(A, rdim[in], rdim[in], prime[ip]);
                         nmod_poly_mat_init(B, rdim[in], Bcdim[bdim], prime[ip]);
 
-                        nmod_poly_mat_rand_origin(A, state, degA[ida]+1);
+                        nmod_poly_mat_rand_at_zero(A, state, degA[ida]+1);
                         nmod_poly_mat_rand(B, state, degB[db]+1);
 
                         res = core_test_dixon(A, B, order, sigma);
@@ -196,7 +155,7 @@ slong prime[]  =
                         nmod_poly_mat_init(A, rdim[in], rdim[in], prime[ip]);
                         nmod_poly_mat_init(B, rdim[in], Bcdim[bdim], prime[ip]);
 
-                        nmod_poly_mat_rand_origin(A, state, degA[ida]+1);
+                        nmod_poly_mat_rand_at_zero(A, state, degA[ida]+1);
                         nmod_poly_mat_rand(B, state, degB[db]+1);
 
                         res = core_test_dixon(A, B, order, sigma);

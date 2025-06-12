@@ -1,5 +1,6 @@
 #include <stdlib.h>
-//#include <flint/profiler.h>
+#include <math.h> 
+
 #include <time.h>
 #include <flint/ulong_extras.h>
 #include <flint/test_helpers.h>
@@ -13,56 +14,12 @@
 
 
 
-
-// Random poly_mat which is nonsingular for x=0
-void nmod_poly_mat_rand_origin(nmod_poly_mat_t A, flint_rand_t state, slong order) 
-{
-
-    nmod_mat_t T1,T2;
-    nmod_mat_init(T1, A->r, A->r, A->modulus);
-    nmod_mat_init(T2, A->r, A->r, A->modulus);
-
-    nmod_mat_randtril(T1,state,0);
-    nmod_mat_randtriu(T2,state,0);
-
-    nmod_mat_mul(T1,T1,T2);
-
-    nmod_poly_mat_t B;
-    nmod_poly_mat_init(B, A->r, A->r, A->modulus);
-
-    // nmod_poly_mat_set_nmod_mat(B,T1); // GV does not work, bug ? Sam 31 mai 2025 14:29:48 CEST
-
-    for (slong i = 0; i < A->r; i++)
-    {
-        for (slong j = 0; j < A->r; j++)
-        {
-            if (nmod_mat_entry(T1, i, j) == 0)
-                nmod_poly_zero(nmod_poly_mat_entry(B, i, j));
-            else
-            {
-                nmod_poly_set_coeff_ui(nmod_poly_mat_entry(B, i, j),0,nmod_mat_entry(T1, i, j));
-            }
-        }
-    }
-
-    nmod_poly_mat_rand(A, state, order-1);
-    nmod_poly_mat_shift_left(A,A,1);
-
-    nmod_poly_mat_add(A,A,B);
-
-    nmod_mat_clear(T1);
-    nmod_mat_clear(T2); 
-    nmod_poly_mat_clear(B); 
-}
-
-
-
 // test one given input
 int core_test_description(slong prime, slong rdim, slong order, slong Bcdim, slong delta, flint_rand_t state)
 {
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, rdim, prime);
-    nmod_poly_mat_rand_origin(A, state, order+1);
+    nmod_poly_mat_rand_at_zero(A, state, order+1);
 
     nmod_poly_mat_t B;
     nmod_poly_mat_init(B, rdim, Bcdim, A->modulus);
@@ -110,9 +67,6 @@ int core_test_description(slong prime, slong rdim, slong order, slong Bcdim, slo
 
         nmod_poly_mat_sub(T1,T1,T2);
 
-        printf("\n");
-        nmod_poly_mat_print_pretty(T1, "x");
-        printf("\n");
 
         if (nmod_poly_mat_is_zero(T1) !=0) 
         {
@@ -127,7 +81,7 @@ int core_test_description(slong prime, slong rdim, slong order, slong Bcdim, slo
 }
 
 
-TEST_FUNCTION_START(nmod_poly_mat_descriptions, state)
+TEST_FUNCTION_START(nmod_poly_mat_description, state)
 {
 
     int res=0;  
@@ -135,20 +89,72 @@ TEST_FUNCTION_START(nmod_poly_mat_descriptions, state)
     srand(time(NULL));
     flint_rand_set_seed(state, rand(), rand());
 
+    slong order;
+    slong Bcdim;
+    slong delta;
+    slong prime;
+    slong rdim;
 
-    core_test_description(5, 8, 1, 1, 8, state);
-
-
-    res=collection_test_dixon(state);
-
+    /** ------------------------- */
+    prime=5;
+    rdim = 12;
+    order=1;
+    Bcdim=1;
+    delta=ceil((double) rdim*(order)/Bcdim);
+    res=core_test_description(prime, rdim, order, Bcdim, delta, state);
+    printf("\n\tprime = %ld,\n\trdim = %ld,\n\tBcdim = %ld,\
+            \n\tdelta = %ld...\n",prime,rdim,Bcdim,delta);
     if (res == 0)
-    {
        TEST_FUNCTION_FAIL("");
-    }
     else
-    {
+
+
+    /** ------------------------- */
+    prime=521;
+    rdim = 22;
+    order=2;
+    Bcdim=2;
+    delta=ceil((double) rdim*(order)/Bcdim);
+    res=core_test_description(prime, rdim, order, Bcdim, delta, state);
+    printf("\n\tprime = %ld,\n\trdim = %ld,\n\tBcdim = %ld,\
+            \n\tdelta = %ld...\n",prime,rdim,Bcdim,delta);
+    if (res == 0)
+       TEST_FUNCTION_FAIL("");
+    else
+
+
+    /** ------------------------- */
+    prime=524309;
+    rdim = 40;
+    order=4;
+    Bcdim=10;
+    delta=ceil((double) rdim*(order)/Bcdim);
+    res=core_test_description(prime, rdim, order, Bcdim, delta, state);
+    printf("\n\tprime = %ld,\n\trdim = %ld,\n\tBcdim = %ld,\
+            \n\tdelta = %ld...\n",prime,rdim,Bcdim,delta);
+    if (res == 0)
+       TEST_FUNCTION_FAIL("");
+    else    
+
+
+#if FLINT64
+/** ------------------------- */
+    prime=576460752303423619;
+    rdim = 40;
+    order=8;
+    Bcdim=240;
+    delta=ceil((double) rdim*(order)/Bcdim);
+    res=core_test_description(prime, rdim, order, Bcdim, delta, state);
+    printf("\n\tprime = %ld,\n\trdim = %ld,\n\tBcdim = %ld,\
+        \n\tdelta = %ld...\n",prime,rdim,Bcdim,delta);
+    if (res == 0)
+       TEST_FUNCTION_FAIL("");
+
+#endif  
+
+
     TEST_FUNCTION_END(state);
-    }
+    
 }
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */

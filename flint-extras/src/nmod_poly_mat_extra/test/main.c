@@ -14,7 +14,7 @@
 test_struct tests[] =
 {
     TEST_FUNCTION(nmod_poly_mat_dixon),
-    TEST_FUNCTION(nmod_poly_mat_dixon);
+    TEST_FUNCTION(nmod_poly_mat_description)
 };
 
 /* main function *************************************************************/
