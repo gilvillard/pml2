@@ -1,13 +1,8 @@
 #include <stdlib.h>
 #include <math.h> 
-#include <flint/nmod.h> 
+
 #include <flint/nmod_poly.h> 
 
-
-#include <pml/nmod_poly_mat_extra.h>
-#include <pml/nmod_poly_mat_io.h>
-
-#include "nmod_mat_extra.h"
 #include "nmod_poly_mat_dixon.h"
 #include "nmod_poly_mat_description.h"
 
@@ -26,7 +21,7 @@
  * 
  */
 
-slong nmod_poly_mat_left_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
+slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
                             const nmod_poly_mat_t H, 
                             slong delta)
 
@@ -147,7 +142,7 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
 
     nmod_poly_mat_transpose(HT,H);
 
-    nbcols = nmod_poly_mat_left_description(NT,DT,HT,delta);
+    nbcols = nmod_poly_mat_left_description(DT,NT,HT,delta);
 
     if (nbcols == 0) 
         return nbcols;

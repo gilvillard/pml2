@@ -49,6 +49,8 @@
 
 #include "nmod_poly_mat_dixon.h"
 
+#include "nmod_poly_mat_description.h"
+
 // TODO remove once using flint's comp instead
 NMOD_POLY_MAT_INLINE void
 apply_perm_to_vector(slong *res, const slong *initial_vect,
