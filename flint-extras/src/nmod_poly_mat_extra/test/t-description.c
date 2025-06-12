@@ -1,15 +1,17 @@
 #include <stdlib.h>
-#include <math.h> 
 //#include <flint/profiler.h>
 #include <time.h>
 #include <flint/ulong_extras.h>
+#include <flint/test_helpers.h>
 
-#include <pml/nmod_poly_mat_utils.h>
-#include <pml/nmod_poly_mat_io.h>
+#include <nmod_poly_mat_utils.h>
+#include <nmod_poly_mat_io.h>
+
 //#include "../../nmod_poly_mat_extras/test/testing_collection.h"
 
-#include "nmod_poly_mat_dixon.h"
 #include "nmod_poly_mat_description.h"
+
+
 
 
 // Random poly_mat which is nonsingular for x=0
@@ -125,34 +127,28 @@ int core_test_description(slong prime, slong rdim, slong order, slong Bcdim, slo
 }
 
 
-int main(int argc, char ** argv)
+TEST_FUNCTION_START(nmod_poly_mat_descriptions, state)
 {
-    printf("Usage: %s OR %s [nbits] [rdim] [order] [Bcdim] [delta] \n--\n", argv[0], argv[0]);
 
-    // disable line buffering
-    setbuf(stdout, NULL);
+    int res=0;  
 
-    slong nbits = atoi(argv[1]);
-    slong rdim = atoi(argv[2]);
-    slong order = atoi(argv[3]);
-    slong Bcdim = atoi(argv[4]);
-    slong delta = atoi(argv[5]);
-
-    flint_rand_t state;
-    flint_rand_init(state);
     srand(time(NULL));
     flint_rand_set_seed(state, rand(), rand());
 
-    slong prime = n_randprime(state, nbits, 1);
-    printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\torder = %ld,\
-            \n\tBcdim = %ld, \n\tdelta = %ld...\n",prime,rdim,order,Bcdim,delta);
+
+    core_test_description(5, 8, 1, 1, 8, state);
 
 
-    core_test_description(prime, rdim, order, Bcdim, delta, state);
+    res=collection_test_dixon(state);
 
-
-    flint_rand_clear(state);
-
+    if (res == 0)
+    {
+       TEST_FUNCTION_FAIL("");
+    }
+    else
+    {
+    TEST_FUNCTION_END(state);
+    }
 }
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
