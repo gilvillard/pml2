@@ -5,7 +5,7 @@ INC_DIR = ../..
 SYSLIB_DIR = /usr/local/lib
 
 OBJS = $(wildcard $(LIB_DIR)/*.o)
-SRC = $(wildcard test*c)
+SRC = $(wildcard test*.c)
 EXEC = $(patsubst %.c, %, $(SRC))
 CHK = $(patsubst %.c, %.chk, $(patsubst test_%, %, $(SRC)))
 COMPILE = $(patsubst %.c, %.exe, $(patsubst test_%, %, $(SRC)))
