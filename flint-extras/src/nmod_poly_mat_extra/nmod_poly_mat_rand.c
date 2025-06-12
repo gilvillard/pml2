@@ -163,5 +163,52 @@ void nmod_poly_mat_rand_popov(nmod_poly_mat_t mat,
 }
 
 
+/** Fills the square polynomial matrix A with random dense polynomial entries such
+ * that the constant coefficient of A is invertible 
+ **/
+
+void nmod_poly_mat_rand_at_zero(nmod_poly_mat_t A, flint_rand_t state, slong order) 
+{
+
+    nmod_mat_t T1,T2;
+    nmod_mat_init(T1, A->r, A->r, A->modulus);
+    nmod_mat_init(T2, A->r, A->r, A->modulus);
+
+    nmod_mat_randtril(T1,state,0);
+    nmod_mat_randtriu(T2,state,0);
+
+    nmod_mat_mul(T1,T1,T2);
+
+    nmod_poly_mat_t B;
+    nmod_poly_mat_init(B, A->r, A->r, A->modulus);
+
+    // nmod_poly_mat_set_nmod_mat(B,T1); // GV does not work, bug ? Sam 31 mai 2025 14:29:48 CEST
+
+    for (slong i = 0; i < A->r; i++)
+    {
+        for (slong j = 0; j < A->r; j++)
+        {
+            if (nmod_mat_entry(T1, i, j) == 0)
+                nmod_poly_zero(nmod_poly_mat_entry(B, i, j));
+            else
+            {
+                nmod_poly_set_coeff_ui(nmod_poly_mat_entry(B, i, j),0,nmod_mat_entry(T1, i, j));
+            }
+        }
+    }
+
+    nmod_poly_mat_rand(A, state, order-1);
+    nmod_poly_mat_shift_left(A,A,1);
+
+    nmod_poly_mat_add(A,A,B);
+
+    nmod_mat_clear(T1);
+    nmod_mat_clear(T2); 
+    nmod_poly_mat_clear(B); 
+}
+
+
+
+
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 // vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s

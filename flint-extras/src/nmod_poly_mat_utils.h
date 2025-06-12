@@ -554,6 +554,17 @@ void nmod_poly_mat_rand_popov(nmod_poly_mat_t mat,
                               const slong * shift,
                               orientation_t orient);
 
+
+/** Fills the square polynomial matrix A with random dense polynomial entries such
+ * that the constant coefficient of A is invertible 
+ **/
+
+
+void nmod_poly_mat_rand_at_zero(nmod_poly_mat_t A, 
+                                flint_rand_t state, 
+                                slong order);
+
+
 //@} // doxygen group: Generation of random matrices with specific forms
 
 
