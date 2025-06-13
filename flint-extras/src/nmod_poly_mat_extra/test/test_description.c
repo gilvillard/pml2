@@ -12,6 +12,59 @@
 #include "nmod_poly_mat_description.h"
 
 
+// test one given input: here, description of a polynomial matrix ! 
+int poly_test_description(slong prime, slong rdim, slong cdim, slong order, slong delta, flint_rand_t state)
+{
+    nmod_poly_mat_t A;
+    nmod_poly_mat_init(A, rdim, cdim, prime);
+    nmod_poly_mat_rand(A, state, order+1);
+
+
+    nmod_poly_mat_t N;
+    nmod_poly_mat_init(N, rdim, cdim, A->modulus);
+
+    nmod_poly_mat_t D;
+    nmod_poly_mat_init(D, cdim, cdim, A->modulus);
+
+    int res=0;
+    res=nmod_poly_mat_description(N, D, A, delta);
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(A, "x");
+    printf("\n");
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(N, "x");
+    printf("\n");
+
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(D, "x");
+    printf("\n");
+
+    if (res != 0)
+    {
+        nmod_poly_mat_t T1;
+        nmod_poly_mat_init(T1, rdim, cdim, A->modulus);
+
+        nmod_poly_mat_mul(T1,A,D);
+        nmod_poly_mat_sub(T1,T1,N);
+
+        if (nmod_poly_mat_is_zero(T1) !=0) 
+            res=1;
+        else 
+            res=0;
+
+        nmod_poly_mat_clear(T1); 
+        }
+    
+    nmod_poly_mat_clear(A); 
+    nmod_poly_mat_clear(N); 
+    nmod_poly_mat_clear(D); 
+    
+    return res;
+}
+
 // test one given input
 int core_test_description(slong prime, slong rdim, slong order, slong Bcdim, slong delta, flint_rand_t state)
 {
@@ -111,7 +164,9 @@ int main(int argc, char ** argv)
             \n\tBcdim = %ld, \n\tdelta = %ld...\n",prime,rdim,order,Bcdim,delta);
 
 
-    core_test_description(prime, rdim, order, Bcdim, delta, state);
+    //core_test_description(prime, rdim, order, Bcdim, delta, state);
+
+    poly_test_description(prime, rdim, rdim+4, order, delta, state);
 
 
     flint_rand_clear(state);

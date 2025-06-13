@@ -19,10 +19,6 @@ int poly_test_description(slong prime, slong rdim, slong cdim, slong order, slon
     nmod_poly_mat_init(A, rdim, cdim, prime);
     nmod_poly_mat_rand(A, state, order+1);
 
-    slong sigma;
-    sigma = ceil((double) (rdim + cdim)*(delta+1)/rdim +1);  
-
-
     nmod_poly_mat_t N;
     nmod_poly_mat_init(N, rdim, cdim, A->modulus);
 
@@ -135,7 +131,25 @@ TEST_FUNCTION_START(nmod_poly_mat_description, state)
     slong cdim;
     slong nbits;
 
- /** ------------------------- */
+
+    /** ------------------------- */
+    for (i = 0; i < 2 * flint_test_multiplier(); i++)
+    {
+
+        nbits = 2 + n_randint(state, 22);
+        rdim = 1 + n_randint(state, 20);
+        cdim = 1 + n_randint(state, 10);
+        order = 0;
+        prime = n_randprime(state, nbits, 1);
+
+        delta=floor((double) rdim*(order)/cdim);
+        res=poly_test_description(prime, rdim, cdim, order, delta, state);
+        
+        if (res == 0)
+            TEST_FUNCTION_FAIL("");
+    }
+
+    /** ------------------------- */
     for (i = 0; i < 2 * flint_test_multiplier(); i++)
     {
 

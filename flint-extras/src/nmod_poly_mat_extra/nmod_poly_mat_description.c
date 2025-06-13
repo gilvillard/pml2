@@ -19,6 +19,8 @@
  *   N  n x m and and D n x n  are initialized outside 
  *    hence the result is part of N and D  
  * 
+ *  Should work for constant matrices 
+ * 
  */
 
 slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
@@ -115,6 +117,8 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
  * 
  *    N m x n and and D n x n  are initialized outside  
  *       hence the result is part of N and D
+ * 
+ *  Should work for constant matrices 
  * 
  */
 
