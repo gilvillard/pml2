@@ -11,7 +11,7 @@
  *  Left description computation for H(x) n x m in K(x) (power series)
  *    with target degree delta
  * 
- *  requires enough precision in input: ie at least (m+n)*delta/m +1
+ *  requires enough precision in input: ie at least (m+n)*(delta+1)/m +1
  * 
  *  returns nbrows and a partial (or full) description when 0 < nbrows <= n rows, 
  *    or zero if no candidates 
@@ -32,7 +32,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
     slong n = H->r;
     slong m = H->c;
 
-    slong sigma = ceil((double) (m+n)*delta/m +1);
+    slong sigma = ceil((double) (m+n)*(delta+1)/m +1);
 
     nmod_poly_mat_t M;
     nmod_poly_mat_init(M, n+m, m, H->modulus);
@@ -45,10 +45,6 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
 
     for (i = 0; i < m; i++)
         nmod_poly_set(nmod_poly_mat_entry(M, n+i, i), mone);
-
-    // printf("\n");
-    // nmod_poly_mat_print_pretty(M, "x");
-    // printf("\n");
 
     nmod_poly_mat_t B;
     nmod_poly_mat_init(B, n+m, n+m, H->modulus);
@@ -75,10 +71,11 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
         }
     }
 
-    if (nbrows != n) 
-    {
-        flint_printf("\nA complete description of degree at most %{slong} probably doesn't exist\n", delta);
-    }
+    // See how to do depending on the level of informations wanted 
+    // if (nbrows != n) 
+    // {
+    //     flint_printf("A complete description of degree at most %{slong} probably doesn't exist\n", delta);
+    // }
 
     if (nbrows == 0) 
         return 0; 
@@ -104,7 +101,6 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
     nmod_poly_clear(mone); 
 
     return nbrows;
-
 }
 
 
@@ -112,7 +108,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
  *  Right description computation for H(x) m x n in K(x) (power series)
  *    with target degree delta
  * 
- *  requires enough precision in input: ie at least (m+n)*delta/m +1
+ *  requires enough precision in input: ie at least (m+n)*(delta+1)/m +1
  * 
  *  returns nbcols and a partial (or full) description when 0 < nbcols <= n rows, 
  *    or zero if no candidates 
@@ -149,13 +145,6 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
 
     nmod_poly_mat_transpose(N,NT);
     nmod_poly_mat_transpose(D,DT);
-    
-
-    // printf("\n");
-    // nmod_poly_mat_print_pretty(N, "x");
-    // printf("\n");
-    // nmod_poly_mat_print_pretty(D, "x");
-    // printf("\n");
 
     nmod_poly_mat_clear(NT); 
     nmod_poly_mat_clear(DT);
@@ -209,7 +198,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     }       
 
     slong sigma;
-    sigma = ceil((double) m*delta/n +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
+    sigma = ceil((double) m*(delta+1)/n +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
 
     nmod_poly_mat_t X;
     nmod_poly_mat_init(X, n, m-n, M->modulus);
@@ -284,11 +273,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
 
     return nbnull;
 }
-
-
-
-
-
 
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */

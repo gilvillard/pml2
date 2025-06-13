@@ -19,9 +19,7 @@
 #include <nmod_poly_mat_utils.h>
 #include <nmod_poly_mat_io.h>
 
-//#include "../../nmod_poly_mat_extras/test/testing_collection.h"
-
-#include "nmod_poly_mat_dixon.h"
+#include "nmod_poly_mat_extra.h"
 
 
 // test one given input

@@ -1,4 +1,3 @@
-
 /*
     Copyright (C) 2025 Gilles Villard
 
@@ -22,10 +21,37 @@ extern "C" {
 #endif
 
 
+/**
+ *  Left description computation for H(x) n x m in K(x) (power series)
+ *    with target degree delta
+ * 
+ *  requires enough precision in input: ie at least (m+n)*(delta+1)/m +1
+ * 
+ *  returns nbrows and a partial (or full) description when 0 < nbrows <= n rows, 
+ *    or zero if no candidates 
+ * 
+ *   N  n x m and and D n x n  are initialized outside 
+ *    hence the result is part of N and D  
+ * 
+ */
+
 slong nmod_poly_mat_left_description(nmod_poly_mat_t D,  nmod_poly_mat_t N,
                             const nmod_poly_mat_t H, 
                             slong delta);
 
+/**
+ *  Right description computation for H(x) m x n in K(x) (power series)
+ *    with target degree delta
+ * 
+ *  requires enough precision in input: ie at least (m+n)*(delta+1)/m +1
+ * 
+ *  returns nbcols and a partial (or full) description when 0 < nbcols <= n rows, 
+ *    or zero if no candidates 
+ * 
+ *    N m x n and and D n x n  are initialized outside  
+ *       hence the result is part of N and D
+ * 
+ */
 
 slong nmod_poly_mat_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
                             const nmod_poly_mat_t H, 

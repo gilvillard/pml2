@@ -295,7 +295,9 @@ mapml:= module()
 		m:=LinearAlgebra:-ColumnDimension(A);
 		n:=LinearAlgebra:-RowDimension(A);
 
-		sigma:=ceil((m+n)*delta/m) +1;
+		# Bound enough even if no subsequent ckech (cf c++) 
+		# If check to zero for couting the rows ok, delta would be ok 
+		sigma:=ceil((m+n)*(delta+1)/m) +1;
 
 
 		M:=map(t->convert(series(t,x,sigma),polynom),A) mod q:
