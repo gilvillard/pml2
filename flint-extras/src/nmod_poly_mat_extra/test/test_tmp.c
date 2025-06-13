@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
     if (nbnull > 0) 
     {
        printf("--------- %ld \n",nbnull);
-       nmod_poly_mat_print_pretty(N, "x");
+       //nmod_poly_mat_print_pretty(N, "x");
        printf("\n");
    }
    else 

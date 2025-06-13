@@ -42,7 +42,7 @@ int poly_test_description(slong prime, slong rdim, slong cdim, slong order, slon
             res=0;
 
         nmod_poly_mat_clear(T1); 
-        }
+    }
     
     nmod_poly_mat_clear(A); 
     nmod_poly_mat_clear(N); 

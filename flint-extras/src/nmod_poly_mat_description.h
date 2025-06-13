@@ -35,6 +35,12 @@ extern "C" {
  * 
  */
 
+/**
+ * n x m 
+ */
+
+slong guess_left_sigma(slong n, slong m, slong delta);
+
 slong nmod_poly_mat_left_description(nmod_poly_mat_t D,  nmod_poly_mat_t N,
                             const nmod_poly_mat_t H, 
                             slong delta);
@@ -52,6 +58,12 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D,  nmod_poly_mat_t N,
  *       hence the result is part of N and D
  * 
  */
+
+/**
+ * n x m 
+ */
+
+slong guess_right_sigma(slong n, slong m, slong delta);
 
 slong nmod_poly_mat_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
                             const nmod_poly_mat_t H, 

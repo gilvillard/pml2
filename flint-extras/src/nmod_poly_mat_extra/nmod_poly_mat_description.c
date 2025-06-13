@@ -25,6 +25,16 @@
  * 
  */
 
+/**
+ * n x m 
+ */
+
+slong guess_left_sigma(slong n, slong m, slong delta)
+{
+    return ceil((double) (m+n)*(delta+1)/m +1);
+}
+
+
 slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
                             const nmod_poly_mat_t H, 
                             slong delta)
@@ -36,7 +46,8 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
     slong n = H->r;
     slong m = H->c;
 
-    slong sigma = ceil((double) (m+n)*(delta+1)/m +1);
+    slong sigma;
+    sigma = guess_left_sigma(n, m, delta);
 
     nmod_poly_mat_t M;
     nmod_poly_mat_init(M, n+m, m, H->modulus);
@@ -124,6 +135,15 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
  * 
  */
 
+/**
+ * n x m 
+ */
+
+slong guess_right_sigma(slong n, slong m, slong delta)
+{
+    return ceil((double) (m+n)*(delta+1)/n +1);
+}
+
 
 slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
                             const nmod_poly_mat_t H, 
@@ -163,7 +183,7 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
 
 /**
  * 
- *  m > n 
+ *  more columns m > n 
  * 
  *  Right kernel computation for M(x) n x m in K[x]
  *   with target degree delta
@@ -212,8 +232,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
             nmod_poly_set(nmod_poly_mat_entry(B, i, j), nmod_poly_mat_entry(M, i, n+j));
     }       
 
-    slong sigma;
-    sigma = ceil((double) m*(delta+1)/n +1);  
 
     nmod_poly_mat_t X;
     nmod_poly_mat_init(X, n, m-n, M->modulus);
@@ -225,6 +243,9 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     if (nmod_poly_mat_degree(A) !=0)
         order  = nmod_poly_mat_degree(A);
     
+
+    slong sigma;
+    sigma = guess_right_sigma(n,m,delta);  
 
     nmod_poly_mat_dixon(X, A, B, order, sigma);   
 
