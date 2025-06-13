@@ -3,6 +3,8 @@
 
 #include <flint/nmod_poly.h> 
 
+#include <nmod_poly_mat_io.h>
+
 #include "nmod_poly_mat_dixon.h"
 #include "nmod_poly_mat_description.h"
 
@@ -161,12 +163,16 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
 
 /**
  * 
+ *  m > n 
+ * 
  *  Right kernel computation for M(x) n x m in K[x]
  *   with target degree delta
  * 
  *  N is intitialized inside for correct dimensions, n x nbnull
  *  returns the number nbnull and N, or zero (N not initialized)   
-*
+ *  
+ *  Should work for constant matrices 
+ * 
 */
 
 int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta)
@@ -181,6 +187,11 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     slong n = M->r;
     slong m = M-> c;
 
+    if (m <= n) 
+    {
+            printf("error in nmod_poly_mat_kernel, the column dimension must be greater than the row one\n");
+            exit(-1);
+    }
 
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, n, n, M->modulus);
@@ -202,14 +213,20 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     }       
 
     slong sigma;
-    sigma = ceil((double) m*(delta+1)/n +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
+    sigma = ceil((double) m*(delta+1)/n +1);  
 
     nmod_poly_mat_t X;
     nmod_poly_mat_init(X, n, m-n, M->modulus);
 
-    slong order = nmod_poly_mat_degree(A);
 
-    nmod_poly_mat_dixon(X, A, B, order, sigma);    
+    slong order=1;
+    
+    // TODO, which best order ?
+    if (nmod_poly_mat_degree(A) !=0)
+        order  = nmod_poly_mat_degree(A);
+    
+
+    nmod_poly_mat_dixon(X, A, B, order, sigma);   
 
     // printf("\n");
     // nmod_poly_mat_print_pretty(A, "x");
