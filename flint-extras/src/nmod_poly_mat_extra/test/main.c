@@ -16,7 +16,6 @@
 
 #include "t-det.c"
 #include "t-dixon.c"
-#include "t-description.c"
 #include "t-hermite_normal_form.c"
 /* #include "t-middle_product_geometric.c" */ /* TODO */
 /* #include "t-mul_geometric.c" */ /* TODO */
@@ -25,6 +24,7 @@
 #include "t-mul_waksman.c"
 #include "t-rand.c"
 #include "t-weak_popov_form.c"
+#include "t-description.c"
 
 /* Array of test functions ***************************************************/
 
