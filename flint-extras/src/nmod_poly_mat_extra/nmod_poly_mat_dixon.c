@@ -114,6 +114,7 @@ void nmod_poly_mat_inv_trunc(nmod_poly_mat_t S,
  * A is assumed to be invertible for x=0 (will produce an error otherwise) 
  * 
  * Iterations mod x^order to obtain a total approximation mod x^sigma
+ *   hence with order >= 1
  * 
  */
 
