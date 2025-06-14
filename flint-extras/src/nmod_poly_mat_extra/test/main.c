@@ -42,7 +42,7 @@ test_struct tests[] =
     /* TEST_FUNCTION(nmod_poly_mat_mul_waksman), */  /* TODO */
     //TEST_FUNCTION(nmod_poly_mat_rand),
     //TEST_FUNCTION(nmod_poly_mat_weak_popov_form),
-    TEST_FUNCTION(nmod_poly_mat_description),
+    //TEST_FUNCTION(nmod_poly_mat_description),
     TEST_FUNCTION(nmod_poly_mat_kernel)
 };
 

@@ -100,29 +100,6 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
         else
             nmod_poly_mat_randtest(A, state, deg+1);
 
-        //++++++++++
-            nmod_poly_mat_t T;
-            nmod_poly_mat_init(T, A->r, A->r, A->modulus);
-
-            for (int ii = 0; ii < rdim; ii++)
-            {
-                for (int j = 0; j < rdim; j++)
-                nmod_poly_set(nmod_poly_mat_entry(T, ii, j), nmod_poly_mat_entry(A, ii, j));
-            }
-
-
-            nmod_poly_mat_truncate(T,2);
-
-            nmod_poly_t det;
-            nmod_poly_init(det, A->modulus);
-            nmod_poly_mat_det(det, T);
-
-            printf("DET \n");
-            nmod_poly_print_pretty(det,"x");
-            printf("\n");
-
-            nmod_poly_mat_clear(T);
-        //+++++++++++++=
 
         delta = floor((double) (rdim*deg)/(cdim-rdim));
         flint_printf("delta %ld\n", delta); 

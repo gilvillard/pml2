@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <math.h> 
+#include <time.h>
 
 #include <flint/nmod_poly.h> 
+#include <flint/nmod_mat.h> 
 
 #include <nmod_poly_mat_io.h>
 
@@ -315,6 +317,155 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
 
     return nbnull;
 }
+
+
+int nmod_poly_mat_kernel2(nmod_poly_mat_t N, const nmod_poly_mat_t M_input, slong delta)
+{
+   
+
+    int i,j;
+
+    slong n = M_input->r;
+    slong m = M_input-> c;
+
+
+    nmod_mat_t U0;
+    nmod_mat_init(U0, m, n, M_input->modulus);
+
+    flint_rand_t state;
+    flint_rand_init(state);
+    srand(time(NULL));
+    flint_rand_set_seed(state, rand(), rand());
+
+    nmod_mat_randtril(U0,state,2);
+
+    nmod_poly_mat_t U;
+    nmod_poly_mat_init(U, m, n, M_input->modulus);
+
+    //nmod_poly_mat_set_nmod_mat(U,U0); // GV does not work, bug ? Sam 14 jui 2025 18:01:54 CEST
+
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            if (nmod_mat_entry(U0, i, j) == 0)
+                nmod_poly_zero(nmod_poly_mat_entry(U, i, j));
+            else
+            {
+                nmod_poly_set_coeff_ui(nmod_poly_mat_entry(U, i, j),0,nmod_mat_entry(U0, i, j));
+            }
+        }
+    }
+
+    nmod_poly_mat_t M;
+    nmod_poly_mat_init(M, n, m, M_input->modulus);
+
+    nmod_poly_mat_mul(M,M_input,U);
+
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < m-n; j++)
+        {
+            nmod_poly_set(nmod_poly_mat_entry(M, i, n+j),nmod_poly_mat_entry(M_input, i, n+j));
+            
+        }
+    }
+
+    //++++++++++
+            nmod_poly_mat_t T;
+            nmod_poly_mat_init(T, M->r, M->r, M->modulus);
+
+            for (int ii = 0; ii < n; ii++)
+            {
+                for (int j = 0; j < n; j++)
+                nmod_poly_set(nmod_poly_mat_entry(T, ii, j), nmod_poly_mat_entry(M, ii, j));
+            }
+
+
+            nmod_poly_mat_truncate(T,2);
+
+            nmod_poly_t det;
+            nmod_poly_init(det, M->modulus);
+            nmod_poly_mat_det(det, T);
+
+            printf("\n");
+            printf("DET :");
+            nmod_poly_print_pretty(det,"x");
+            printf("\n");
+            printf("\n");
+            
+            nmod_poly_mat_clear(T);
+    //+++++++++++++=
+
+    slong nbnull;
+
+    nbnull = nmod_poly_mat_kernel(N, M, delta);
+
+    // nbnull not zero           
+
+    nmod_poly_mat_t UH;
+    nmod_poly_mat_init(UH, n, n, M_input->modulus);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            nmod_poly_set(nmod_poly_mat_entry(UH, i, j),nmod_poly_mat_entry(U, i, j));
+            
+    nmod_poly_mat_t NH;
+    nmod_poly_mat_init(NH, n, nbnull, M_input->modulus);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < nbnull; j++)
+            nmod_poly_set(nmod_poly_mat_entry(NH, i, j),nmod_poly_mat_entry(N, i, j));
+                    
+    nmod_poly_mat_t TMP1;
+    nmod_poly_mat_init(TMP1, n, nbnull, M_input->modulus);
+    nmod_poly_mat_mul(TMP1, UH, NH);
+
+
+    nmod_poly_mat_t UL;
+    nmod_poly_mat_init(UL, m-n, n, M_input->modulus);
+    for (i = 0; i < m-n; i++)
+        for (j = 0; j < n; j++)
+            nmod_poly_set(nmod_poly_mat_entry(UL, i, j),nmod_poly_mat_entry(U, n+i, j));
+            
+    nmod_poly_mat_t NL;
+    nmod_poly_mat_init(NL, m-n, nbnull, M_input->modulus);
+    for (i = 0; i < m-n; i++)
+        for (j = 0; j < nbnull; j++)
+            nmod_poly_set(nmod_poly_mat_entry(NL, i, j),nmod_poly_mat_entry(N, n+i, j));
+
+    nmod_poly_mat_t TMP2;
+    nmod_poly_mat_init(TMP2, m-n, nbnull, M_input->modulus);
+    nmod_poly_mat_mul(TMP2, UL, NH);
+    nmod_poly_mat_add(TMP2, TMP2, NL);
+
+
+    for (i = 0; i < n; i++)
+        for (j = 0; j < nbnull; j++)
+            nmod_poly_set(nmod_poly_mat_entry(N, i, j),nmod_poly_mat_entry(TMP1, i, j));
+
+    for (i = 0; i < m-n; i++)
+        for (j = 0; j < nbnull; j++)
+            nmod_poly_set(nmod_poly_mat_entry(N, n+i, j),nmod_poly_mat_entry(TMP2, i, j));
+
+
+ nmod_poly_mat_t Z;
+    nmod_poly_mat_init(Z, n, nbnull, M_input->modulus);
+
+nmod_poly_mat_mul(Z, M_input, N);
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(Z, "x");
+    printf("\n");
+
+
+
+
+    return nbnull;
+    // return, changer pour N à l'extérieur 
+
+}
+
+
+
 
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */

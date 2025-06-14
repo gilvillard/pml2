@@ -73,6 +73,9 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
 int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, 
                             slong delta);
 
+int nmod_poly_mat_kernel2(nmod_poly_mat_t N, const nmod_poly_mat_t M, 
+                            slong delta);
+
 #ifdef __cplusplus
 }
 #endif

@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
     slong nbnull;
 
-    nbnull = nmod_poly_mat_kernel(N,A,delta);
+    nbnull = nmod_poly_mat_kernel2(N,A,delta);
 
     if (nbnull > 0) 
     {
@@ -54,6 +54,7 @@ int main(int argc, char ** argv)
         flint_printf("\nNo kernel vector found of degree %ld or less\n\n", delta);
 
     nmod_poly_mat_clear(A);
+    nmod_poly_mat_clear(N);
 
     flint_rand_clear(state);
 
