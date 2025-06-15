@@ -32,33 +32,34 @@ int main(int argc, char ** argv)
 
     slong prime = n_randprime(state, nbits, 1);
     printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\tcdim = %ld,\
-            \n\tdegree = %ld, \n\tdelta = %ld...\n",prime,rdim,cdim,deg,delta);
+        \n\tdegree = %ld, \n\tdelta = %ld...\n",prime,rdim,cdim,deg,delta);
 
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
     nmod_poly_mat_rand(A, state, deg+1);
 
     nmod_poly_mat_t N; // Not initialized 
+    nmod_poly_mat_init(N, cdim, cdim-rdim, prime); // Full row rank input
 
-    slong nbnull;
+        slong nbnull;
 
-    nbnull = nmod_poly_mat_kernel2(N,A,delta);
+        nbnull = nmod_poly_mat_kernel2(N,A,delta);
 
-    if (nbnull > 0) 
-    {
-       printf("--------- %ld \n",nbnull);
+        if (nbnull > 0) 
+        {
+         printf("--------- %ld \n",nbnull);
        //nmod_poly_mat_print_pretty(N, "x");
-       printf("\n");
-   }
-   else 
-        flint_printf("\nNo kernel vector found of degree %ld or less\n\n", delta);
+         printf("\n");
+     }
+     else 
+     flint_printf("\nNo kernel vector found of degree %ld or less\n\n", delta);
 
-    nmod_poly_mat_clear(A);
-    nmod_poly_mat_clear(N);
+     nmod_poly_mat_clear(A);
+     nmod_poly_mat_clear(N);
 
-    flint_rand_clear(state);
+     flint_rand_clear(state);
 
-}
+ }
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 // vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s

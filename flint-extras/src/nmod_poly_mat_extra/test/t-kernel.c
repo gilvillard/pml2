@@ -27,16 +27,17 @@ int core_test_kernel(const nmod_poly_mat_t A, slong delta)
 {
 
     nmod_poly_mat_t N;
+    nmod_poly_mat_init(N, A->c, (A->c) - (A->r), A->modulus);
 
     slong nbnull;
 
-    nbnull = nmod_poly_mat_kernel(N, A, delta);
+    nbnull = nmod_poly_mat_kernel2(N, A, delta);
 
     if (nbnull == 0)
         return 0;
 
     nmod_poly_mat_t T;
-    nmod_poly_mat_init(T, A->r, nbnull, A->modulus);
+    nmod_poly_mat_init(T, A->r, (A->c) - (A->r), A->modulus);
 
     nmod_poly_mat_mul(T,A,N);
 
@@ -72,12 +73,9 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
     srand(time(NULL));
     flint_rand_set_seed(state, rand(), rand());
 
-    if (res == 0)
-            TEST_FUNCTION_FAIL("");
-
-    for (i = 0; i < 10 * flint_test_multiplier(); i++)
+    for (i = 0; i < 60 * flint_test_multiplier(); i++)
     {
-        nbits = 2 + n_randint(state, 62);
+        nbits =12 + n_randint(state, 50);
         rdim = 1 + n_randint(state, 20);
         deg = 1+ n_randint(state, 40);
 
@@ -90,12 +88,11 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
 
         flint_printf("-- rdim %ld  cdim %ld   deg %ld\n", rdim, cdim, deg); 
 
-
         //nmod_poly_mat_rand(A, state, deg+1);
 
-        if (i < 30)
+        if (i < 20)
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.9);
-        else if (i < 60)
+        else if (i < 40)
             nmod_poly_mat_rand(A, state, deg+1);
         else
             nmod_poly_mat_randtest(A, state, deg+1);

@@ -2,6 +2,7 @@
 #include <math.h> 
 #include <time.h>
 
+#include <flint/ulong_extras.h>
 #include <flint/nmod_poly.h> 
 #include <flint/nmod_mat.h> 
 
@@ -42,7 +43,6 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t D, nmod_poly_mat_t N,
                             slong delta)
 
 {
-
     slong i,j;
 
     slong n = H->r;
@@ -185,13 +185,13 @@ slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
 
 /**
  * 
- *  more columns m > n 
+ *  M(x) has more columns, m > n, and must be full row rank  
  * 
  *  Right kernel computation for M(x) n x m in K[x]
  *   with target degree delta
  * 
- *  N is intitialized inside for correct dimensions, n x nbnull
- *  returns the number nbnull and N, or zero (N not initialized)   
+ *  nbnull is returned 
+ *  N m x (m-n) is returned with nbnull nontrivial columns if found 
  *  
  *  Should work for constant matrices 
  * 
@@ -268,12 +268,11 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     slong nbnull;
     nbnull=nmod_poly_mat_description(P, Q, X, delta);
 
+    if (nbnull > m-n) 
+        nbnull=0;
 
     if (nbnull != 0) 
     {
-        nmod_poly_mat_init(N, m, nbnull, A->modulus);
-
-
         for (i = 0; i < n; i++)
         {
             for (j = 0; j < nbnull; j++)
@@ -291,24 +290,16 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
         }      
 
         nmod_poly_mat_t T;
-        nmod_poly_mat_init(T, n, nbnull, M->modulus);
+        nmod_poly_mat_init(T, n, m-n, M->modulus);
 
         nmod_poly_mat_mul(T,M,N);
 
-        // printf("--------- %ld \n",nbnull);
-        // nmod_poly_mat_print_pretty(N, "x");
-        // printf("\n");
-
         if (nmod_poly_mat_is_zero(T) == 0)
-        {
-            nmod_poly_mat_clear(N); 
-            nbnull = 0; 
-        }
+            nbnull = 0;
 
         nmod_poly_mat_clear(T);
     }
        
-
     nmod_poly_mat_clear(A);
     nmod_poly_mat_clear(B);
     nmod_poly_mat_clear(X);
@@ -360,13 +351,37 @@ int nmod_poly_mat_kernel2(nmod_poly_mat_t N, const nmod_poly_mat_t M_input, slon
     nmod_poly_mat_t M;
     nmod_poly_mat_init(M, n, m, M_input->modulus);
 
+    //+++++++++++++
+
+    ulong shift; 
+
+    shift = 1 + n_urandint(state, M_input->modulus -1); // GV not zero, not sure why 
+
+    printf("\n");
+            flint_printf("SHIFT: %ld",shift);
+        
+            printf("\n");
+
+
     nmod_poly_mat_mul(M,M_input,U);
+
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            nmod_poly_taylor_shift_horner(nmod_poly_mat_entry(M, i, j), \
+                                            nmod_poly_mat_entry(M, i, j), shift);
+            
+        }
+    }
+
 
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < m-n; j++)
         {
-            nmod_poly_set(nmod_poly_mat_entry(M, i, n+j),nmod_poly_mat_entry(M_input, i, n+j));
+            nmod_poly_taylor_shift_horner(nmod_poly_mat_entry(M, i, n+j), \
+                                            nmod_poly_mat_entry(M_input, i, n+j),shift);
             
         }
     }
@@ -401,65 +416,88 @@ int nmod_poly_mat_kernel2(nmod_poly_mat_t N, const nmod_poly_mat_t M_input, slon
 
     nbnull = nmod_poly_mat_kernel(N, M, delta);
 
-    // nbnull not zero           
 
-    nmod_poly_mat_t UH;
-    nmod_poly_mat_init(UH, n, n, M_input->modulus);
-    for (i = 0; i < n; i++)
-        for (j = 0; j < n; j++)
-            nmod_poly_set(nmod_poly_mat_entry(UH, i, j),nmod_poly_mat_entry(U, i, j));
+    if (nbnull !=0)          
+    {
+        nmod_poly_mat_t UH;
+        nmod_poly_mat_init(UH, n, n, M_input->modulus);
+        for (i = 0; i < n; i++)
+            for (j = 0; j < n; j++)
+                nmod_poly_set(nmod_poly_mat_entry(UH, i, j),nmod_poly_mat_entry(U, i, j));
             
-    nmod_poly_mat_t NH;
-    nmod_poly_mat_init(NH, n, nbnull, M_input->modulus);
-    for (i = 0; i < n; i++)
-        for (j = 0; j < nbnull; j++)
-            nmod_poly_set(nmod_poly_mat_entry(NH, i, j),nmod_poly_mat_entry(N, i, j));
-                    
-    nmod_poly_mat_t TMP1;
-    nmod_poly_mat_init(TMP1, n, nbnull, M_input->modulus);
-    nmod_poly_mat_mul(TMP1, UH, NH);
+        nmod_poly_mat_t NH;
+        nmod_poly_mat_init(NH, n, nbnull, M_input->modulus);
+        for (i = 0; i < n; i++)
+            for (j = 0; j < nbnull; j++)
+                nmod_poly_set(nmod_poly_mat_entry(NH, i, j),nmod_poly_mat_entry(N, i, j));
+
+        nmod_poly_mat_t TMP1;
+        nmod_poly_mat_init(TMP1, n, nbnull, M_input->modulus);
+        nmod_poly_mat_mul(TMP1, UH, NH);
 
 
-    nmod_poly_mat_t UL;
-    nmod_poly_mat_init(UL, m-n, n, M_input->modulus);
-    for (i = 0; i < m-n; i++)
-        for (j = 0; j < n; j++)
-            nmod_poly_set(nmod_poly_mat_entry(UL, i, j),nmod_poly_mat_entry(U, n+i, j));
-            
-    nmod_poly_mat_t NL;
-    nmod_poly_mat_init(NL, m-n, nbnull, M_input->modulus);
-    for (i = 0; i < m-n; i++)
-        for (j = 0; j < nbnull; j++)
-            nmod_poly_set(nmod_poly_mat_entry(NL, i, j),nmod_poly_mat_entry(N, n+i, j));
+        nmod_poly_mat_t UL;
+        nmod_poly_mat_init(UL, m-n, n, M_input->modulus);
+        for (i = 0; i < m-n; i++)
+            for (j = 0; j < n; j++)
+                nmod_poly_set(nmod_poly_mat_entry(UL, i, j),nmod_poly_mat_entry(U, n+i, j));
 
-    nmod_poly_mat_t TMP2;
-    nmod_poly_mat_init(TMP2, m-n, nbnull, M_input->modulus);
-    nmod_poly_mat_mul(TMP2, UL, NH);
-    nmod_poly_mat_add(TMP2, TMP2, NL);
+        nmod_poly_mat_t NL;
+        nmod_poly_mat_init(NL, m-n, nbnull, M_input->modulus);
+        for (i = 0; i < m-n; i++)
+            for (j = 0; j < nbnull; j++)
+                nmod_poly_set(nmod_poly_mat_entry(NL, i, j),nmod_poly_mat_entry(N, n+i, j));
 
-
-    for (i = 0; i < n; i++)
-        for (j = 0; j < nbnull; j++)
-            nmod_poly_set(nmod_poly_mat_entry(N, i, j),nmod_poly_mat_entry(TMP1, i, j));
-
-    for (i = 0; i < m-n; i++)
-        for (j = 0; j < nbnull; j++)
-            nmod_poly_set(nmod_poly_mat_entry(N, n+i, j),nmod_poly_mat_entry(TMP2, i, j));
+        nmod_poly_mat_t TMP2;
+        nmod_poly_mat_init(TMP2, m-n, nbnull, M_input->modulus);
+        nmod_poly_mat_mul(TMP2, UL, NH);
+        nmod_poly_mat_add(TMP2, TMP2, NL);
 
 
- nmod_poly_mat_t Z;
-    nmod_poly_mat_init(Z, n, nbnull, M_input->modulus);
+        for (i = 0; i < n; i++)
+            for (j = 0; j < nbnull; j++)
+                nmod_poly_set(nmod_poly_mat_entry(N, i, j),nmod_poly_mat_entry(TMP1, i, j));
 
-nmod_poly_mat_mul(Z, M_input, N);
-
-    printf("\n");
-    nmod_poly_mat_print_pretty(Z, "x");
-    printf("\n");
-
+        for (i = 0; i < m-n; i++)
+            for (j = 0; j < nbnull; j++)
+                nmod_poly_set(nmod_poly_mat_entry(N, n+i, j),nmod_poly_mat_entry(TMP2, i, j));
 
 
+        for (i = 0; i < m; i++)
+        {
+            for (j = 0; j < nbnull; j++)
+            {
+                nmod_poly_taylor_shift_horner(nmod_poly_mat_entry(N, i, j), \
+                nmod_poly_mat_entry(N, i, j), M_input->modulus - shift);
+            }
+        }
+
+        //++++++++
+//  nmod_poly_mat_t Z;
+//     nmod_poly_mat_init(Z, n, m-n, M_input->modulus);
+
+// nmod_poly_mat_mul(Z, M_input, N);
+
+//     printf("\n");
+//     nmod_poly_mat_print_pretty(Z, "x");
+//     printf("\n");
+    // nmod_poly_mat_clear(A);
+    // nmod_poly_mat_clear(B);
+    // nmod_poly_mat_clear(X);
+    // nmod_poly_mat_clear(P);
+    // nmod_poly_mat_clear(Q);
+
+    }
+
+
+    // nmod_poly_mat_clear(A);
+    // nmod_poly_mat_clear(B);
+    // nmod_poly_mat_clear(X);
+    // nmod_poly_mat_clear(P);
+    // nmod_poly_mat_clear(Q);
 
     return nbnull;
+
     // return, changer pour N à l'extérieur 
 
 }
