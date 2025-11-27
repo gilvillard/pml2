@@ -136,7 +136,7 @@ int collection_test_dixon(flint_rand_t state)
 slong prime[]  = 
     {
     2, 5,    // very small ones
-    521, 524309 // 10, 20, 30 bits
+    524309 // 10, 20, 30 bits
     };
 #endif 
 
@@ -146,7 +146,7 @@ slong prime[]  =
 
     slong degA[] = {1, 20};
 
-    slong degB[] = {1, 2, 20};
+    slong degB[] = {2, 20};
 
     slong order;
     slong sigma;

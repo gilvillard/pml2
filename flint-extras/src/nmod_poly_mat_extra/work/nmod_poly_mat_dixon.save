@@ -107,7 +107,7 @@ void nmod_poly_mat_inv_trunc(nmod_poly_mat_t S,
 
 /**
  * 
- * CHECK: probably only degree > 0 currently 
+ * TODO: probably only degree > 0 currently 
  *
  * x-adic iterations à la Dixon : AX=B mod x^sigma
  * A is nxn, B is nxm 
@@ -116,6 +116,7 @@ void nmod_poly_mat_inv_trunc(nmod_poly_mat_t S,
  * Iterations mod x^order to obtain a total approximation mod x^sigma
  * 
  */
+
 
 void nmod_poly_mat_dixon(nmod_poly_mat_t X, 
                             const nmod_poly_mat_t A, 
@@ -185,6 +186,5 @@ void nmod_poly_mat_dixon(nmod_poly_mat_t X,
 
 
 }
-
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 // vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s

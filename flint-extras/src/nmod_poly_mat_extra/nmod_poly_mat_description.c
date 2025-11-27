@@ -4,8 +4,8 @@
 #include <flint/nmod_poly.h> 
 
 
-#include <pml/nmod_poly_mat_extra.h>
-#include <pml/nmod_poly_mat_io.h>
+#include "nmod_poly_mat_extra.h"
+#include "nmod_poly_mat_io.h"
 
 #include "nmod_mat_extra.h"
 #include "nmod_poly_mat_dixon.h"
