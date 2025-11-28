@@ -25,7 +25,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
                             slong delta);
 
 
-slong nmod_poly_mat_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
+slong nmod_poly_mat_right_description(nmod_poly_mat_t N,  nmod_poly_mat_t D,
                             const nmod_poly_mat_t H, 
                             slong delta);
 

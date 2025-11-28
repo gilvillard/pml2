@@ -8,8 +8,8 @@
 #include <pml/nmod_poly_mat_io.h>
 //#include "../../nmod_poly_mat_extras/test/testing_collection.h"
 
-#include "../nmod_poly_mat_dixon.h"
-#include "../nmod_poly_mat_description.h"
+#include "nmod_poly_mat_dixon.h"
+#include "nmod_poly_mat_description.h"
 
 
 // Random poly_mat which is nonsingular for x=0
@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
     //nmod_poly_mat_inv_trunc(S,A,order-1);
 
     slong sigma;
-    sigma = ceil((double) (rdim + Bcdim)*delta/rdim +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
+    sigma = ceil((double) (rdim + Bcdim)*(delta+1)/rdim +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
 
 
     nmod_poly_mat_dixon(X, A, B, order, sigma);    
@@ -111,9 +111,14 @@ int main(int argc, char ** argv)
     nmod_poly_mat_init(D, Bcdim, Bcdim, A->modulus);
 
     int res=0;
-    res=nmod_poly_mat_description(N, D, X, delta);
+    res=nmod_poly_mat_right_description(N, D, X, delta);
 
-    if (res == 0)
+    printf("\n");
+        nmod_poly_mat_print_pretty(N, "x");
+        nmod_poly_mat_print_pretty(D, "x");
+        printf("\n");
+
+    if (res != 0)
     {
         nmod_poly_mat_t T1;
         nmod_poly_mat_init(T1, rdim, Bcdim, A->modulus);

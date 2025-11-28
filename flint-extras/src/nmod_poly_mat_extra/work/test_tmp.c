@@ -8,8 +8,8 @@
 #include <pml/nmod_poly_mat_io.h>
 //#include "../../nmod_poly_mat_extras/test/testing_collection.h"
 
-#include "../nmod_poly_mat_dixon.h"
-#include "../nmod_poly_mat_description.h"
+#include "nmod_poly_mat_dixon.h"
+#include "nmod_poly_mat_description.h"
 
 
 // Random poly_mat which is nonsingular for x=0

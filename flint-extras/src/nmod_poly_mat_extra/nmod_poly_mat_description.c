@@ -37,7 +37,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
     slong n = H->r;
     slong m = H->c;
 
-    slong sigma = ceil((double) (m+n)*delta/m +1);
+    slong sigma = ceil((double) (m+n)*(delta+1)/m +1); 
 
     nmod_poly_mat_t M;
     nmod_poly_mat_init(M, n+m, m, H->modulus);
@@ -128,7 +128,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
  */
 
 
-slong nmod_poly_mat_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
+slong nmod_poly_mat_right_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
                             const nmod_poly_mat_t H, 
                             slong delta)
 
@@ -238,7 +238,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M, slong delta
     nmod_poly_mat_init(Q, m-n, m-n, A->modulus);
 
     slong nbnull;
-    nbnull=nmod_poly_mat_description(P, Q, X, delta);
+    nbnull=nmod_poly_mat_right_description(P, Q, X, delta);
 
 
     if (nbnull != 0) 
