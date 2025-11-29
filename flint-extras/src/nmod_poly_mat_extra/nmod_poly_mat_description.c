@@ -31,13 +31,12 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
                             slong delta)
 
 {
-
     slong i,j;
 
     slong n = H->r;
     slong m = H->c;
 
-    slong sigma = ceil((double) (m+n)*(delta+1)/m +1); 
+    slong sigma = ceil((double) (m+n)*delta/m +1); 
 
     nmod_poly_mat_t M;
     nmod_poly_mat_init(M, n+m, m, H->modulus);
@@ -67,6 +66,7 @@ slong nmod_poly_mat_left_description(nmod_poly_mat_t N, nmod_poly_mat_t D,
     // Shifted approximant computation 
 
     nmod_poly_mat_pmbasis(B, shift, M, sigma); 
+
 
     slong rows[n+m];
     slong nbrows=0;

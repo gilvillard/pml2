@@ -91,7 +91,8 @@ int main(int argc, char ** argv)
     //nmod_poly_mat_inv_trunc(S,A,order-1);
 
     slong sigma;
-    sigma = ceil((double) (rdim + Bcdim)*(delta+1)/rdim +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
+    sigma = ceil((double) (rdim + Bcdim)*delta/rdim +1);   
+    // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
 
 
     nmod_poly_mat_dixon(X, A, B, order, sigma);    
@@ -113,6 +114,7 @@ int main(int argc, char ** argv)
     int res=0;
     res=nmod_poly_mat_right_description(N, D, X, delta);
 
+    //++++++++++++++=
     printf("\n");
         nmod_poly_mat_print_pretty(N, "x");
         nmod_poly_mat_print_pretty(D, "x");
