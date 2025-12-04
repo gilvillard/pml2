@@ -144,9 +144,9 @@ slong prime[]  =
 
     slong Bcdim[] = {1, 10};
 
-    slong degA[] = {1, 20};
+    slong degA[] = {1, 12};
 
-    slong degB[] = {1, 2, 20};
+    slong degB[] = {1, 8};
 
     slong order;
     slong sigma;
