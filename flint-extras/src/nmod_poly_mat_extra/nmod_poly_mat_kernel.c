@@ -11,20 +11,170 @@
 #include "nmod_poly_mat_kernel.h"
 
 
+
+
+/**
+ * 
+ * In place for the moment 
+ * 
+ * Couplé : calcule le shifted degree et tri : returns sdeg, initialized outside
+ * 
+ */
+ 
+
+void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
+{
+
+    slong n = M->c;
+    slong j;
+
+    nmod_poly_mat_column_degree(sdeg, M, ishift);
+
+    // Only required from the input matrix, not for the subsequent calls 
+    for (j=0; j<n; j++) 
+        if (sdeg[j] < 0) sdeg[j]=0;
+
+
+    printf("\n [ ");
+    for (int j=0; j<n-1; j++) 
+        printf(" %ld, ",sdeg[j]);
+    printf(" %ld ]\n",sdeg[n-1]);
+
+
+    slong * perm = flint_malloc(n * sizeof(slong));
+
+    _nmod_poly_mat_permute_columns_by_sorting_vec(M, n, sdeg, perm);
+
+    printf("\n [ ");
+    for (int j=0; j<n-1; j++) 
+        printf(" %ld, ",sdeg[j]);
+    printf(" %ld ]\n",sdeg[n-1]);
+
+}
+
+
+    //nmod_poly_mat_permute_columns();
+
 /**
  *  ZLS 
  * 
+ *  !!!  n >= m  (does not work otherwise, pb with degs/shift lengths)
+ * 
  *  N initialized inside ?
+ * 
+ *  input ishift 
+ *  output tshift, initialized outside
+ * 
  * 
  */
 
 
-int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M)
+int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, const slong *ishift)
 {
+
+    slong i;
+
+    slong m = A->r;
+    slong n = A->c;
+
+
+    slong kappa=2;
+    slong min_mn;
+    slong rho=0;
+
+    if (m <= n) 
+    {
+        min_mn=m;
+        for (i=n-m; i<n; i++)   // Pb null shift 
+            rho+=ishift[i];   
+    }
+    else 
+    {
+        min_mn=n;
+
+        for (i=0; i<n; i++)   // Pb null shift 
+            rho+=ishift[i];  
+        printf("\n m > n  %ld  %ld",m,n);   // To see, rectangular case 
+    }  
+
+    slong s;
+    s = ceil((double) rho/min_mn); 
+
+    printf("\n rho: %ld    s: %ld \n",rho, s);
+
+    nmod_poly_mat_t AT;
+    nmod_poly_mat_init(AT, n, m, A->modulus);
+    nmod_poly_mat_transpose(AT,A);
+
+    nmod_poly_mat_t PT;
+    nmod_poly_mat_init(PT, n, n, A->modulus);
+
+   // shift is modified in place 
+    slong shift[n];
+    for (i=0; i<n; i++)
+    {
+        shift[i]=ishift[i];
+    }
     
+    nmod_poly_mat_pmbasis(PT, shift, AT, kappa*s+1);
+
+    nmod_poly_mat_t P;
+    nmod_poly_mat_init(P, n, n, A->modulus);
+    nmod_poly_mat_transpose(P,PT);
+
+
     printf("\n");
-    nmod_poly_mat_print_pretty(M, "x");
+    nmod_poly_mat_print_pretty(P, "x");
     printf("\n");
+
+    printf("\n [ ");
+    for (i=0; i<n-1; i++) 
+        printf(" %ld, ",shift[i]);
+    printf(" %ld ]\n",shift[i]);
+
+    nmod_poly_mat_t R;
+    nmod_poly_mat_init(R, m, n, A->modulus);
+
+    nmod_poly_mat_mul(R,A,P);
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(R, "x");
+    printf("\n");
+
+    slong cdeg[n];
+
+    slong zshift[m];
+    for (i=0; i<m; i++)
+    {
+        zshift[i]=0;
+    }
+
+    nmod_poly_mat_column_degree(cdeg, R, zshift);
+
+    printf("\n [ ");
+    for (i=0; i<n-1; i++) 
+        printf(" %ld, ",cdeg[i]);
+    printf(" %ld ]\n",cdeg[i]);
+
+    slong n1=0;
+    slong n2=0;
+
+    for (i=0; i<n-1; i++) {
+        if (cdeg[i]<0) 
+            n1+=1;
+    }
+
+    n2=n-n1;
+
+///+++++++++++++++++++++++
+
+
+   //P:=res[1];
+   //shift:=res[2];
+
+
+//slong shift[2*n];
+
 
 
 

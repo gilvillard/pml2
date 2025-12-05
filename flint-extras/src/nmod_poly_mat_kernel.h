@@ -21,7 +21,9 @@ extern "C" {
 #endif
 
 
-int nmod_poly_mat_zls(nmod_poly_mat_t N, const nmod_poly_mat_t M); 
+void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift);
+
+int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t M, const slong *ishift); 
 
 
 #ifdef __cplusplus
