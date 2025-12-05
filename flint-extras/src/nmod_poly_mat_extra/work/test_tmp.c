@@ -8,6 +8,7 @@
 #include <pml/nmod_poly_mat_io.h>
 //#include "../../nmod_poly_mat_extras/test/testing_collection.h"
 
+#include "nmod_poly_mat_kernel.h"
 
 
 int main(int argc, char ** argv)
@@ -30,39 +31,43 @@ int main(int argc, char ** argv)
 
     slong prime = n_randprime(state, nbits, 1);
 
+    prime=2;
+
+
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(mat, state, order+1, 0.05);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.32);
 
 
     nmod_poly_mat_t N; // Not initialized 
 
     printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\tcdim = %ld,\
-            \n\tdegree = %ld ...\n",prime,rdim,cdim,order);
+        \n\tdegree = %ld ...\n",prime,rdim,cdim,order);
 
 
+    slong i;
+    slong iz[rdim];
 
-static inline void _test_collection_mat_sparse(nmod_poly_mat_t mat, slong deg, flint_rand_t state)
-{
-   
-}
+    slong ishift[cdim];
+    slong tshift[cdim];
 
-
-    
-
-    slong nbnull;
-
-    nbnull = nmod_poly_mat_kernel(N,A,delta);
-
-    if (nbnull > 0) 
+    for (i = 0; i < rdim; i++) 
     {
-       printf("--------- %ld \n",nbnull);
-       //nmod_poly_mat_print_pretty(N, "x");
-       printf("\n");
-   }
-   else 
-        flint_printf("\nNo kernel vector found of degree %ld or less\n\n", delta);
+        iz[i]=0; 
+    }
+
+    // Initial modification of A
+
+    sortM(A,ishift,iz);   
+
+    printf("\n");
+    nmod_poly_mat_print_pretty(A, "x");
+    printf("\n");
+
+
+    nmod_poly_mat_zls(N, tshift, A, ishift);
+
 
     nmod_poly_mat_clear(A);
 
