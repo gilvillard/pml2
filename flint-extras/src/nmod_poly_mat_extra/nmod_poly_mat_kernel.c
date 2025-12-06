@@ -65,6 +65,7 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
  *  input ishift 
  *  output tshift, initialized outside
  * 
+ *  returns the number of nullspace vectors
  * 
  */
 
@@ -72,7 +73,7 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, const slong *ishift)
 {
 
-    slong i;
+    slong i,j,k;
 
     slong m = A->r;
     slong n = A->c;
@@ -123,9 +124,9 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     nmod_poly_mat_transpose(P,PT);
 
 
-    printf("\n");
-    nmod_poly_mat_print_pretty(P, "x");
-    printf("\n");
+    // printf("\n");
+    // nmod_poly_mat_print_pretty(P, "x");
+    // printf("\n");
 
     printf("\n [ ");
     for (i=0; i<n-1; i++) 
@@ -137,9 +138,9 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
 
     nmod_poly_mat_mul(R,A,P);
 
-    printf("\n");
-    nmod_poly_mat_print_pretty(R, "x");
-    printf("\n");
+    // printf("\n");
+    // nmod_poly_mat_print_pretty(R, "x");
+    // printf("\n");
 
     slong cdeg[n];
 
@@ -157,14 +158,89 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     printf(" %ld ]\n",cdeg[i]);
 
     slong n1=0;
-    slong n2=0;
+    slong n2;
 
-    for (i=0; i<n-1; i++) {
-        if (cdeg[i]<0) 
+    for (j=0; j<n; j++) {
+        if (cdeg[j]<0) 
             n1+=1;
     }
 
+
+    nmod_poly_mat_t P1;
+
+    if (n1>0) {
+        nmod_poly_mat_init(P1, n, n1, A->modulus);
+
+        k=0;
+        for (j = 0; j < n; j++)
+        {
+            if (cdeg[j]<0) {
+
+                for (i = 0; i < n; i++)
+                    nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(P, i, j));
+                k+=1;
+            }
+
+        }
+    }
+    
+
     n2=n-n1;
+
+    if (n2==0) {
+
+        nmod_poly_mat_init_set(N,P1);
+        nmod_poly_mat_column_degree(tshift, P1, ishift);
+
+        return n1;
+    }
+
+    nmod_poly_mat_t P2;
+    nmod_poly_mat_init(P2, n, n2, A->modulus);
+
+    k=0;
+    for (j = 0; j < n; j++)
+    {
+        if (cdeg[j]>=0) {
+
+            for (i = 0; i < n; i++)
+                nmod_poly_set(nmod_poly_mat_entry(P2, i, k), nmod_poly_mat_entry(P, i, j));
+            k+=1;
+        }
+
+    }
+
+
+    if (m==1){   // Then n2=0 ? 
+
+        if (n1==0) 
+            return 0; 
+        else {
+            nmod_poly_mat_init_set(N,P1);
+            nmod_poly_mat_column_degree(tshift, P1, ishift);
+
+            return n1;
+        }
+
+    }
+
+
+    // n2 <> 0 and m> 1
+    // ----------------
+
+    sortM(P2,tshift,ishift);
+
+    for (i = 0; i < n2; i++) {
+        tshift[i]=tshift[i]-kappa*s;
+    }
+    
+printf("\n [ ");
+    for (i=0; i<n2-1; i++) 
+        printf(" %ld, ",tshift[i]);
+    printf(" %ld ]\n",tshift[i]);
+
+
+
 
 ///+++++++++++++++++++++++
 
