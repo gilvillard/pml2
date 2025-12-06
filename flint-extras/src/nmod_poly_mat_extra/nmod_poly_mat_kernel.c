@@ -35,20 +35,20 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
         if (sdeg[j] < 0) sdeg[j]=0;
 
 
-    printf("\n [ ");
-    for (int j=0; j<n-1; j++) 
-        printf(" %ld, ",sdeg[j]);
-    printf(" %ld ]\n",sdeg[n-1]);
+    // printf("\n [ ");
+    // for (int j=0; j<n-1; j++) 
+    //     printf(" %ld, ",sdeg[j]);
+    // printf(" %ld ]\n",sdeg[n-1]);
 
 
     slong * perm = flint_malloc(n * sizeof(slong));
 
     _nmod_poly_mat_permute_columns_by_sorting_vec(M, n, sdeg, perm);
 
-    printf("\n [ ");
-    for (int j=0; j<n-1; j++) 
-        printf(" %ld, ",sdeg[j]);
-    printf(" %ld ]\n",sdeg[n-1]);
+    // printf("\n [ ");
+    // for (int j=0; j<n-1; j++) 
+    //     printf(" %ld, ",sdeg[j]);
+    // printf(" %ld ]\n",sdeg[n-1]);
 
 }
 
@@ -128,10 +128,10 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     // nmod_poly_mat_print_pretty(P, "x");
     // printf("\n");
 
-    printf("\n [ ");
-    for (i=0; i<n-1; i++) 
-        printf(" %ld, ",shift[i]);
-    printf(" %ld ]\n",shift[i]);
+    // printf("\n [ ");
+    // for (i=0; i<n-1; i++) 
+    //     printf(" %ld, ",shift[i]);
+    // printf(" %ld ]\n",shift[i]);
 
     nmod_poly_mat_t R;
     nmod_poly_mat_init(R, m, n, A->modulus);
@@ -152,10 +152,10 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
 
     nmod_poly_mat_column_degree(cdeg, R, zshift);
 
-    printf("\n [ ");
-    for (i=0; i<n-1; i++) 
-        printf(" %ld, ",cdeg[i]);
-    printf(" %ld ]\n",cdeg[i]);
+    // printf("\n [ ");
+    // for (i=0; i<n-1; i++) 
+    //     printf(" %ld, ",cdeg[i]);
+    // printf(" %ld ]\n",cdeg[i]);
 
     slong n1=0;
     slong n2;
