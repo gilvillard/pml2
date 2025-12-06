@@ -239,7 +239,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
         tshift[i]=tshift[i]-kappa*s;
     }
     
-printf("\n [ ");
+    printf("\n [ ");
     for (i=0; i<n2-1; i++) 
         printf(" %ld, ",tshift[i]);
     printf(" %ld ]\n",tshift[i]);
