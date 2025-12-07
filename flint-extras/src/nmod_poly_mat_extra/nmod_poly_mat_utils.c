@@ -158,7 +158,7 @@ void _nmod_poly_mat_permute_columns_by_sorting_vec(nmod_poly_mat_t mat,
 {
     slong_pair * tmp = flint_malloc(r * sizeof(slong_pair));
     _vec_sort_permutation(perm, vec, vec, r, tmp);
-    for (slong i = r; i < mat->r; i++)
+    for (slong i = r; i < mat->c; i++)
         perm[i] = i;
     flint_free(tmp);
     nmod_poly_mat_permute_columns(mat, perm, NULL);
