@@ -34,8 +34,6 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
     for (j=0; j<n; j++) 
         if (sdeg[j] < 0) sdeg[j]=0;
 
-
-
     // printf("\n [ ");
     // for (int j=0; j<n-1; j++) 
     //     printf(" %ld, ",sdeg[j]);
@@ -242,8 +240,59 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     printf("\n [ ");
     for (i=0; i<n2-1; i++) 
         printf(" %ld, ",tshift[i]);
-    printf(" %ld ]\n",tshift[i]);
+    printf(" %ld ]\n",tshift[n2-1]);
 
+
+    nmod_poly_mat_t G;
+    nmod_poly_mat_init(G, m, n2, A->modulus);
+
+    nmod_poly_mat_mul(G, A, P2);
+
+    nmod_poly_mat_t TT;
+    nmod_poly_mat_init(TT, m, n2, A->modulus);
+
+
+    nmod_poly_mat_shift_right(TT,G,kappa*s);
+
+    slong new_m=floor((double) m/2);
+
+    nmod_poly_mat_t G1;
+    nmod_poly_mat_init(G1, new_m, n2, A->modulus);
+
+    for (i = 0; i < new_m; i++){
+        for (j = 0; j < n2; j++) {
+            nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(TT, i, j));
+        }
+    }
+
+    nmod_poly_mat_t G2;
+    nmod_poly_mat_init(G2, m-new_m, n2, A->modulus);
+
+    for (i = 0; i < m-new_m; i++) {
+        for (j = 0; j < n2; j++) {
+            nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(TT, i+new_m, j));
+        }
+    }
+    printf("--- G1 \n");
+    nmod_poly_mat_print_pretty(G1, "x");
+    printf("\n");
+
+    printf("--- G2 \n");
+    nmod_poly_mat_print_pretty(G2, "x");
+    printf("\n");
+
+    // Change the dimension of the shift? tshift can be reused in output
+
+    // +++++++++++++++++++++++++++++++++++++++++++++
+    
+    for (i=0; i<n2; i++) {
+        shift[i]=tshift[i];
+    }
+
+    slong res;
+
+    nmod_poly_mat_t N1;
+    nmod_poly_mat_zls(N1, tshift, G1, shift); 
 
 
 
