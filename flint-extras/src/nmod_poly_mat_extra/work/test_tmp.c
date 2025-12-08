@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
     slong i;
     slong iz[rdim];
 
-    slong ishift[cdim];
+    
     slong tshift[cdim];
 
     for (i = 0; i < rdim; i++) 
@@ -59,18 +59,37 @@ int main(int argc, char ** argv)
 
     // Initial modification of A
 
-    sortM(A,ishift,iz);   
+    //sortM(A,ishift,perm,iz);   
+
+
+    // printf("Permutation \n [ ");
+    // for (int j=0; j<cdim; j++) 
+    //     printf(" %ld, ",perm[j]);
+    // printf(" %ld ]\n",perm[cdim-1]);
+
 
     printf("A input \n");
     nmod_poly_mat_print_pretty(A, "x");
     printf("\n");
 
 
-    nmod_poly_mat_zls(N, tshift, A, ishift);
+    double t = 0.0;
+    clock_t tt;
 
-    printf("N output \n");
-    nmod_poly_mat_print_pretty(N, "x");
-    printf("\n");
+
+    printf("~~~~WARMUP~~~~\n");
+    nmod_poly_mat_zls(N, tshift, A, iz);
+    printf("~~~~WARMUP DONE~~~~\n");
+
+    tt = clock();
+    nmod_poly_mat_zls(N, tshift, A, iz);
+    t += (double)(clock()-tt) / CLOCKS_PER_SEC;
+
+
+
+    // printf("N output \n");
+    // nmod_poly_mat_print_pretty(N, "x");
+    // printf("\n");
 
 
     slong nbnull;
@@ -86,13 +105,28 @@ int main(int argc, char ** argv)
     // nmod_poly_mat_print_pretty(Z, "x");
     // printf("\n");
 
+    nmod_poly_mat_t Nflint;
+    nmod_poly_mat_init(Nflint, cdim, cdim, A->modulus);
+    
+    nmod_poly_mat_nullspace(Nflint, A);
+    
+    double t2 = 0.0;
+    tt = clock();
+    nmod_poly_mat_nullspace(Nflint, A);
+    t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
+
+    // printf("Nflint output \n");
+    // nmod_poly_mat_print_pretty(Nflint, "x");
+    // printf("\n");
+
+
     if (nmod_poly_mat_is_zero(Z) !=0) 
     {
-        printf("Nullspace of dimension %ld\n",nbnull);
+        printf("Nullspace of dimension %ld, time: %f , time: %f \n",nbnull,t,t2);
         return 1;
     }
 
-    
+
 
     nmod_poly_mat_clear(A);
 

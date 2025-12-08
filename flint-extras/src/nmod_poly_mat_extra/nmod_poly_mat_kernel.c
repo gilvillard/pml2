@@ -22,7 +22,7 @@
  */
  
 
-void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
+void sortM(nmod_poly_mat_t M, slong *sdeg, slong *perm, const slong *ishift)
 {
 
     slong n = M->c;
@@ -40,7 +40,7 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
     // printf(" %ld ]\n",sdeg[n-1]);
 
 
-    slong * perm = flint_malloc(n * sizeof(slong));
+    //slong * perm = flint_malloc(n * sizeof(slong));
 
     _nmod_poly_mat_permute_columns_by_sorting_vec(M, n, sdeg, perm);
 
@@ -70,7 +70,7 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift)
  */
 
 
-int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, const slong *ishift)
+int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, const slong *ishift)
 {
 
     slong i,j,k;
@@ -232,7 +232,9 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     // n2 <> 0 and m> 1
     // ----------------
 
-    sortM(P2,tshift,ishift);
+    slong * perm = flint_malloc(n2 * sizeof(slong));
+
+    sortM(P2,tshift,perm,ishift);
 
     for (i = 0; i < n2; i++) {
         tshift[i]=tshift[i]-kappa*s;
@@ -296,7 +298,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
-    res=nmod_poly_mat_zls(N1, tshift, G1, shift); 
+    res=nmod_poly_mat_zls_sorted(N1, tshift, G1, shift); 
 
     slong c1 = N1->c;
 
@@ -311,7 +313,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
             shift[i]=tshift[i];
         }
 
-        res=nmod_poly_mat_zls(N2, tshift, G3, shift); 
+        res=nmod_poly_mat_zls_sorted(N2, tshift, G3, shift); 
 
     }
 
@@ -394,7 +396,62 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
 }
 
 
+int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t iA, const slong *ishift)
+{
 
+    slong i,j,k;
+
+    slong m = iA->r;
+    slong n = iA->c;
+
+
+    nmod_poly_mat_t A;
+    nmod_poly_mat_init(A, m, n, iA->modulus);
+
+
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            nmod_poly_set(nmod_poly_mat_entry(A, i, j), nmod_poly_mat_entry(iA,i,j));
+        }
+    }
+
+
+    slong * perm = flint_malloc(n * sizeof(slong));
+
+    slong shift[n];
+
+    sortM(A,shift,perm,ishift);   
+
+    slong res;
+
+    nmod_poly_mat_t NT;
+    res=nmod_poly_mat_zls_sorted(NT, tshift, A, shift);
+
+
+    // printf("--- NT \n");
+    // nmod_poly_mat_print_pretty(NT, "x");
+    // printf("\n");
+
+    // Back to A 
+    if (res !=0) {
+
+        slong nz = NT->c;
+
+        nmod_poly_mat_init(N, n, nz, A->modulus);
+
+        for (k = 0; k < n; k++) {
+            for (j = 0; j < nz; j++){
+
+                nmod_poly_set(nmod_poly_mat_entry(N, perm[k], j), nmod_poly_mat_entry(NT,k,j));
+            }
+        }
+
+        return nz; 
+    }
+    
+    return 0; 
+    
+}
 
 
 

@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 
-void sortM(nmod_poly_mat_t M, slong *sdeg, const slong *ishift);
+void sortM(nmod_poly_mat_t M, slong *sdeg, slong *perm, const slong *ishift);
 
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t M, const slong *ishift); 
 
