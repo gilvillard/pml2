@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.98);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.48);
 
 
     nmod_poly_mat_t N; // Not initialized 
@@ -73,8 +73,26 @@ int main(int argc, char ** argv)
     printf("\n");
 
 
+    slong nbnull;
 
+    nbnull=N->c;
 
+    nmod_poly_mat_t Z;
+    nmod_poly_mat_init(Z, rdim, nbnull, A->modulus);
+
+    nmod_poly_mat_mul(Z, A, N);
+
+    // printf("\n");
+    // nmod_poly_mat_print_pretty(Z, "x");
+    // printf("\n");
+
+    if (nmod_poly_mat_is_zero(Z) !=0) 
+    {
+        printf("Nullspace of dimension %ld\n",nbnull);
+        return 1;
+    }
+
+    
 
     nmod_poly_mat_clear(A);
 

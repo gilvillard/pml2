@@ -274,7 +274,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
             nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(TT, i+new_m, j));
         }
     }
-    
+
     // printf("--- G1 \n");
     // nmod_poly_mat_print_pretty(G1, "x");
     // printf("\n");
@@ -392,6 +392,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
 
     return 0; // ??? 
 }
+
 
 
 
