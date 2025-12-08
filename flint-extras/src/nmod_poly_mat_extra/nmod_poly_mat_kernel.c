@@ -93,15 +93,15 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     {
         min_mn=n;
 
-        for (i=0; i<n; i++)   // Pb null shift 
-            rho+=ishift[i];  
-        printf("\n m > n  %ld  %ld",m,n);   // To see, rectangular case 
+        // for (i=0; i<n; i++)   // Pb null shift 
+        //     rho+=ishift[i];  
+        // printf("\n m > n  %ld  %ld",m,n);   // To see, rectangular case 
     }  
 
     slong s;
     s = ceil((double) rho/min_mn); 
 
-    printf("\n rho: %ld    s: %ld \n",rho, s);
+    //printf("\n rho: %ld    s: %ld \n",rho, s);
 
     nmod_poly_mat_t AT;
     nmod_poly_mat_init(AT, n, m, A->modulus);
@@ -214,6 +214,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     }
 
 
+    // !!!!!  CHECK
     if (m==1){   // Then n2=0 ? 
 
         if (n1==0) 
@@ -237,10 +238,10 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
         tshift[i]=tshift[i]-kappa*s;
     }
     
-    printf("\n [ ");
-    for (i=0; i<n2-1; i++) 
-        printf(" %ld, ",tshift[i]);
-    printf(" %ld ]\n",tshift[n2-1]);
+    // printf("\n [ ");
+    // for (i=0; i<n2-1; i++) 
+    //     printf(" %ld, ",tshift[i]);
+    // printf(" %ld ]\n",tshift[n2-1]);
 
 
     nmod_poly_mat_t G;
@@ -273,18 +274,19 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
             nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(TT, i+new_m, j));
         }
     }
-    printf("--- G1 \n");
-    nmod_poly_mat_print_pretty(G1, "x");
-    printf("\n");
+    
+    // printf("--- G1 \n");
+    // nmod_poly_mat_print_pretty(G1, "x");
+    // printf("\n");
 
-    printf("--- G2 \n");
-    nmod_poly_mat_print_pretty(G2, "x");
-    printf("\n");
+    // printf("--- G2 \n");
+    // nmod_poly_mat_print_pretty(G2, "x");
+    // printf("\n");
 
     // Change the dimension of the shift? tshift can be reused in output
 
-    // +++++++++++++++++++++++++++++++++++++++++++++
-    
+    //+++++++++++++++++++++++++++++++++++++++++
+
     for (i=0; i<n2; i++) {
         shift[i]=tshift[i];
     }
@@ -292,114 +294,95 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     slong res;
 
     nmod_poly_mat_t N1;
-    nmod_poly_mat_zls(N1, tshift, G1, shift); 
+    nmod_poly_mat_t N2;
+
+    res=nmod_poly_mat_zls(N1, tshift, G1, shift); 
+
+    slong c1 = N1->c;
+
+    if (res != 0) {
+        
+        nmod_poly_mat_t G3;
+        nmod_poly_mat_init(G3, m-new_m, c1, A->modulus);
+
+        nmod_poly_mat_mul(G3, G2, N1);
+
+        for (i=0; i<c1; i++) {
+            shift[i]=tshift[i];
+        }
+
+        res=nmod_poly_mat_zls(N2, tshift, G3, shift); 
+
+    }
+
+    if (res==0) {
+
+        if (n1==0) {
+            return 0; 
+        }
+        else {
+            nmod_poly_mat_init_set(N,P1);
+            nmod_poly_mat_column_degree(tshift, P1, ishift);
+
+            return n1;
+        }
+
+    }
+
+    slong c2 = N2->c;
+
+    nmod_poly_mat_t Q1;
+    nmod_poly_mat_init(Q1, n, c1, A->modulus);
+
+    nmod_poly_mat_mul(Q1, P2, N1);
+
+    nmod_poly_mat_t Q;
+    nmod_poly_mat_init(Q, n, c2, A->modulus);
+
+    nmod_poly_mat_mul(Q, Q1, N2);
+
+    if (n1 ==0) {
+
+        nmod_poly_mat_init_set(N,Q);
+        nmod_poly_mat_column_degree(tshift, Q, ishift);
+
+        return c2;
+
+    }
+    else {
+
+        nmod_poly_mat_init(N, n, n1+c2, A->modulus);
+
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n1; j++) {
+                nmod_poly_set(nmod_poly_mat_entry(N, i, j), nmod_poly_mat_entry(P1,i,j));
+            }
+        }
+
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < c2; j++) {
+                nmod_poly_set(nmod_poly_mat_entry(N, i, j+n1), nmod_poly_mat_entry(Q, i, j));
+            }
+        }
 
 
+        slong oshift[m]; // Too big, to see
 
-///+++++++++++++++++++++++
+        nmod_poly_mat_column_degree(oshift, P1, ishift);
 
+        for (i=0; i<n1; i++) {
+            tshift[i]=oshift[i];
+        }
 
-   //P:=res[1];
-   //shift:=res[2];
+        nmod_poly_mat_column_degree(oshift, Q, ishift);
 
+        for (i=0; i<c2; i++) {
+            tshift[i+n1]=oshift[i];
+        }
 
-//slong shift[2*n];
+        return n1+c2;
 
-
-
-
-    // slong i,j;
-
-    // slong n = M->r;
-    // slong m = M-> c;
-
-
-    // nmod_poly_mat_t A;
-    // nmod_poly_mat_init(A, n, n, M->modulus);
-
-    // nmod_poly_mat_t B;
-    // nmod_poly_mat_init(B, n, m-n, M->modulus);
-
-
-    // for (i = 0; i < n; i++)
-    // {
-    //     for (j = 0; j < n; j++)
-    //         nmod_poly_set(nmod_poly_mat_entry(A, i, j), nmod_poly_mat_entry(M, i, j));
-    // }
-
-    // for (i = 0; i < n; i++)
-    // {
-    //     for (j = 0; j < m-n; j++)
-    //         nmod_poly_set(nmod_poly_mat_entry(B, i, j), nmod_poly_mat_entry(M, i, n+j));
-    // }       
-
-    // slong sigma;
-    // sigma = ceil((double) m*delta/n +1);   // sigma >= ceil((double) (rdim + Bcdim)*delta/rdim +1);
-
-    // nmod_poly_mat_t X;
-    // nmod_poly_mat_init(X, n, m-n, M->modulus);
-
-    // slong order = nmod_poly_mat_degree(A);
-
-    // nmod_poly_mat_dixon(X, A, B, order, sigma);    
-
-    // // printf("\n");
-    // // nmod_poly_mat_print_pretty(A, "x");
-    // // printf("\n");
-    // // nmod_poly_mat_print_pretty(B, "x");
-    // // printf("sigma %ld\n",sigma); 
-    // // printf("\n");
-
-
-    // nmod_poly_mat_t P;
-    // nmod_poly_mat_init(P, n, m-n, A->modulus);
-
-    // nmod_poly_mat_t Q;
-    // nmod_poly_mat_init(Q, m-n, m-n, A->modulus);
-
-    // slong nbnull;
-    // nbnull=nmod_poly_mat_right_description(P, Q, X, delta);
-
-
-    // if (nbnull != 0) 
-    // {
-    //     nmod_poly_mat_init(N, m, nbnull, A->modulus);
-
-
-    //     for (i = 0; i < n; i++)
-    //     {
-    //         for (j = 0; j < nbnull; j++)
-    //             nmod_poly_set(nmod_poly_mat_entry(N, i, j), nmod_poly_mat_entry(P, i, j));
-    //     }
-
-
-    //     for (i = 0; i < m-n; i++)
-    //     {
-    //         for (j = 0; j < nbnull; j++)
-    //         {
-    //             nmod_poly_set(nmod_poly_mat_entry(N, n+i, j), nmod_poly_mat_entry(Q, i, j));
-    //             nmod_poly_neg(nmod_poly_mat_entry(N, n+i, j), nmod_poly_mat_entry(N, n+i, j));
-    //         }
-    //     }      
-
-    //     nmod_poly_mat_t T;
-    //     nmod_poly_mat_init(T, n, nbnull, M->modulus);
-
-    //     nmod_poly_mat_mul(T,M,N);
-
-    //     // printf("--------- %ld \n",nbnull);
-    //     // nmod_poly_mat_print_pretty(N, "x");
-    //     // printf("\n");
-
-    //     if (nmod_poly_mat_is_zero(T) == 0)
-    //     {
-    //         nmod_poly_mat_clear(N); 
-    //         nbnull = 0; 
-    //     }
-
-    //     nmod_poly_mat_clear(T);
-    // }
-       
+    }
 
     // nmod_poly_mat_clear(A);
     // nmod_poly_mat_clear(B);
@@ -407,7 +390,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A,
     // nmod_poly_mat_clear(P);
     // nmod_poly_mat_clear(Q);
 
-    return 0;
+    return 0; // ??? 
 }
 
 

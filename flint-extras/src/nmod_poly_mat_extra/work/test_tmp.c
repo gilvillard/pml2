@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.32);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.98);
 
 
     nmod_poly_mat_t N; // Not initialized 
@@ -61,12 +61,19 @@ int main(int argc, char ** argv)
 
     sortM(A,ishift,iz);   
 
-    printf("\n");
+    printf("A input \n");
     nmod_poly_mat_print_pretty(A, "x");
     printf("\n");
 
 
     nmod_poly_mat_zls(N, tshift, A, ishift);
+
+    printf("N output \n");
+    nmod_poly_mat_print_pretty(N, "x");
+    printf("\n");
+
+
+
 
 
     nmod_poly_mat_clear(A);
