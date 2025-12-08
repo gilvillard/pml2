@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2025 Vincent Neiger
+    Copyright (C) 2025 Gilles Villard
 
     This file is part of PML.
 
@@ -16,67 +16,122 @@
 #include <flint/test_helpers.h>
 
 #include "nmod_poly_mat_utils.h"
-#include "nmod_poly_mat_extra.h"  // det_iter currently in _extra.h
+#include "nmod_poly_mat_extra.h"  
 
 // test one given input
-int core_test_determinant(const nmod_poly_mat_t mat)
+int core_test_kernel(const nmod_poly_mat_t mat)
 {
-    nmod_poly_t det;
-    nmod_poly_init(det, mat->modulus);
-    nmod_poly_t det_correct;
-    nmod_poly_init(det_correct, mat->modulus);
-    // init copy of mat
-    nmod_poly_mat_t copy_mat;
-    nmod_poly_mat_init(copy_mat, mat->r, mat->c, mat->modulus);
 
-    // verification of determinant
-    int verif_det;
+    slong m=mat->r;
+    slong n=mat->c;
+    
+    // Flint rank 
+    // ----------
+    
+    slong rkflint;
 
-    nmod_poly_mat_det(det_correct, mat);
+    rkflint=nmod_poly_mat_rank(mat);
+    
 
-    { // Mulders and Storjohann's algorithm, row by row variant
-        nmod_poly_mat_set(copy_mat, mat);
-        nmod_poly_mat_det_iter(det, copy_mat);
-        verif_det = nmod_poly_equal(det_correct, det);
+    // PML nullspace
+    // -------------
+
+    nmod_poly_mat_t N; // Not initialized, to modify 
+    slong nz,nbnull;
+
+    int i;
+    slong iz[m];
+
+    for (i = 0; i < m; i++) 
+    {
+        iz[i]=0; 
     }
 
-    nmod_poly_mat_clear(copy_mat);
-    nmod_poly_clear(det_correct);
-    nmod_poly_clear(det);
+    slong tshift[n];
 
-    return verif_det;
+    nz=nmod_poly_mat_zls(N, tshift, mat, iz);
+
+    if (nz==0) 
+        nbnull=nz;
+    else
+        nbnull = N->c;
+
+    int verif;
+    verif =  (nz==nbnull) && (n-rkflint == nz);
+
+    if (nz !=0) {
+
+        nmod_poly_mat_t Z;
+        nmod_poly_mat_init(Z, m, nbnull, mat->modulus);
+
+        nmod_poly_mat_mul(Z, mat, N);
+
+        verif = verif && nmod_poly_mat_is_zero(Z); 
+
+        nmod_poly_mat_clear(Z);
+        nmod_poly_mat_clear(N);
+    }
+
+    // printf("m %ld   n %ld\n",m,n);
+    // printf("nz %ld\n",nz);
+    // printf("nbnull %ld\n",nbnull);
+    // printf("flint null %ld\n",n-rkflint);
+
+    return verif; 
+
 }
 
-TEST_FUNCTION_START(nmod_poly_mat_det, state)
+TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
 {
-    int i, result;
+    flint_rand_t state;
+    flint_rand_init(state);
+    srand(time(NULL));
+    flint_rand_set_seed(state, rand(), rand());
+
+    int i,result;
 
     for (i = 0; i < 100 * flint_test_multiplier(); i++)
     {
-        ulong nbits = 2 + n_randint(state, 62);
+
+        ulong nbits = 2 + n_randint(state, 30);
         ulong rdim = 1 + n_randint(state, 20);
-        ulong order = n_randint(state, 40);
+        ulong cdim = rdim + 1 + n_randint(state, 40);
+        ulong deg = n_randint(state, 20);
 
         ulong prime = n_randprime(state, nbits, 1);
 
-        nmod_poly_mat_t mat;
-        nmod_poly_mat_init(mat, rdim, rdim, prime);
 
-        if (i < 30)
-            nmod_poly_mat_randtest_sparse(mat, state, order, 0.2);
-        else if (i < 60)
-            nmod_poly_mat_rand(mat, state, order);
-        else
-            nmod_poly_mat_randtest(mat, state, order);
+        nmod_poly_mat_t A;
 
-        result = core_test_determinant(mat);
+        if (i < 4) {
+            nmod_poly_mat_init(A, rdim, rdim, prime);
+            nmod_poly_mat_randtest_sparse(A, state, deg+1, 1.0);
+        }
+        else if (i < 8) {
+            nmod_poly_mat_init(A, rdim, rdim+1, prime);
+            nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
+        }
+        else if (i < 50) {
+            nmod_poly_mat_init(A, rdim, cdim, prime);
+            nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.2);
+        }
+        else {
+            nmod_poly_mat_init(A, rdim, cdim, prime);
+            nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.84);
+        }     
 
-        nmod_poly_mat_clear(mat);
+        result = core_test_kernel(A);
 
-        if (!result)
-            TEST_FUNCTION_FAIL("dim = %wu, degree = %wu, p = %wu\n",
-                    rdim, order, prime);
+        nmod_poly_mat_clear(A);
+
+        if (!result) {
+            TEST_FUNCTION_FAIL("rdim = %wu, cdim = %wu, degree = %wu, p = %wu\n", \
+                rdim, cdim, deg, prime);
+        }
     }
 
-    TEST_FUNCTION_END(state);
+TEST_FUNCTION_END(state);
 }
+
+/* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+// vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s
