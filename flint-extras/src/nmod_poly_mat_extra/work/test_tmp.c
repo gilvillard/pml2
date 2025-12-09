@@ -107,11 +107,11 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t Nflint;
     nmod_poly_mat_init(Nflint, cdim, cdim, A->modulus);
     
-    nmod_poly_mat_nullspace(Nflint, A);
+    nmod_poly_mat_rank(A);
     
     double t2 = 0.0;
     tt = clock();
-    nmod_poly_mat_nullspace(Nflint, A);
+    nmod_poly_mat_rank(A);
     t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
     // printf("Nflint output \n");
