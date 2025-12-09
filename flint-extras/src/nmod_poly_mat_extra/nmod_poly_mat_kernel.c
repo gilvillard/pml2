@@ -70,7 +70,8 @@ void sortM(nmod_poly_mat_t M, slong *sdeg, slong *perm, const slong *ishift)
  */
 
 
-int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, const slong *ishift)
+int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, \
+                                 const slong *ishift, const slong kappa)
 {
 
     slong i,j,k;
@@ -79,7 +80,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
     slong n = A->c;
 
 
-    slong kappa=2;
+    //slong kappa=2;
     slong min_mn;
     slong rho=0;
 
@@ -117,7 +118,9 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
         shift[i]=ishift[i];
     }
     
+
     nmod_poly_mat_pmbasis(PT, shift, AT, kappa*s+1);
+
 
     nmod_poly_mat_t P;
     nmod_poly_mat_init(P, n, n, A->modulus);
@@ -240,6 +243,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
         tshift[i]=tshift[i]-kappa*s;
     }
     
+
     // printf("\n [ ");
     // for (i=0; i<n2-1; i++) 
     //     printf(" %ld, ",tshift[i]);
@@ -255,7 +259,9 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
     nmod_poly_mat_init(TT, m, n2, A->modulus);
 
 
+    
     nmod_poly_mat_shift_right(TT,G,kappa*s);
+    
 
     slong new_m=floor((double) m/2);
 
@@ -298,7 +304,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
-    res=nmod_poly_mat_zls_sorted(N1, tshift, G1, shift); 
+    res=nmod_poly_mat_zls_sorted(N1, tshift, G1, shift, kappa); 
 
     slong c1 = N1->c;
 
@@ -313,7 +319,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
             shift[i]=tshift[i];
         }
 
-        res=nmod_poly_mat_zls_sorted(N2, tshift, G3, shift); 
+        res=nmod_poly_mat_zls_sorted(N2, tshift, G3, shift, kappa); 
 
     }
 
@@ -396,7 +402,8 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *tshift, const nmod_poly_m
 }
 
 
-int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t iA, const slong *ishift)
+int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t iA, \
+                         const slong *ishift, const slong kappa)
 {
 
     slong i,j,k;
@@ -425,7 +432,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t iA
     slong res;
 
     nmod_poly_mat_t NT;
-    res=nmod_poly_mat_zls_sorted(NT, tshift, A, shift);
+    res=nmod_poly_mat_zls_sorted(NT, tshift, A, shift, kappa);
 
 
     // printf("--- NT \n");

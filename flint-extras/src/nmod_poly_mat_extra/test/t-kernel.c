@@ -49,7 +49,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
     slong tshift[n];
 
-    nz=nmod_poly_mat_zls(N, tshift, mat, iz);
+    nz=nmod_poly_mat_zls(N, tshift, mat, iz, 2);
 
     if (nz==0) 
         nbnull=nz;

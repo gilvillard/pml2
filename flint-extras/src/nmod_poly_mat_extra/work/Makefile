@@ -22,5 +22,8 @@ run:	$(CHK)
 %.exe:
 	if test -e test_$*.c; then $(CC) -o test_$* test_$*.c $(OBJS) $(CFLAGS) $(LIBS); fi
 
+bench:
+	$(CC) -o bench bench.c $(OBJS) $(CFLAGS) $(LIBS); 
+
 %.chk:
 	if test -e test_$*; then ./test_$* > $*.chk; fi
