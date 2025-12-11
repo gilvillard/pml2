@@ -24,7 +24,7 @@ run:	$(CHK)
 %.exe:
 	if test -e test_$*.c; then $(CC) -o test_$* test_$*.c $(OBJS) $(CFLAGS) $(LIBS); fi
 
-bench: bench.c
+bench: bench.c 
 	$(CC) -o bench bench.c $(BFLAGS)  
 
 %.chk:
