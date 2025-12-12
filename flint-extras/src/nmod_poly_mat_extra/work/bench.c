@@ -30,7 +30,7 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     slong iz[rdim];
 
     
-    slong tshift[cdim];
+    slong degN[cdim];
 
     for (i = 0; i < rdim; i++) 
         iz[i]=0; 
@@ -56,7 +56,7 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     for (int i=0; i<nb_iter; i++)
     {
         timeit_start(timer1);
-        nmod_poly_mat_zls(N, tshift, A, iz, kappa,threshold);
+        nmod_poly_mat_zls(N, degN, A, iz, kappa,threshold);
         timeit_stop(timer1);
         t_pml += timer1->wall;
 

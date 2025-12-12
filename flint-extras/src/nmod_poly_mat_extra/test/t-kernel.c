@@ -49,7 +49,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
     slong tshift[n];
 
-    nz=nmod_poly_mat_zls(N, tshift, mat, iz, 2);
+    nz=nmod_poly_mat_zls(N, tshift, mat, iz, 2, -1);
 
     if (nz==0) 
         nbnull=nz;
@@ -90,12 +90,12 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
 
     int i,result;
 
-    for (i = 0; i < 100 * flint_test_multiplier(); i++)
+    for (i = 0; i < 16 * flint_test_multiplier(); i++)
     {
 
         ulong nbits = 2 + n_randint(state, 30);
-        ulong rdim = 1 + n_randint(state, 20);
-        ulong cdim = rdim + 1 + n_randint(state, 40);
+        ulong rdim = 1 + n_randint(state, 60);
+        ulong cdim = rdim + 1 + n_randint(state, 20);
         ulong deg = n_randint(state, 20);
 
         ulong prime = n_randprime(state, nbits, 1);
@@ -111,7 +111,7 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
             nmod_poly_mat_init(A, rdim, rdim+1, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
         }
-        else if (i < 50) {
+        else if (i < 12) {
             nmod_poly_mat_init(A, rdim, cdim, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.2);
         }
@@ -119,6 +119,29 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
             nmod_poly_mat_init(A, rdim, cdim, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.84);
         }     
+
+        result = core_test_kernel(A);
+
+        nmod_poly_mat_clear(A);
+
+        if (!result) {
+            TEST_FUNCTION_FAIL("rdim = %wu, cdim = %wu, degree = %wu, p = %wu\n", \
+                rdim, cdim, deg, prime);
+        }
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        ulong rdim = 20 + n_randint(state, 8);
+        ulong cdim = rdim -8;
+        ulong deg = 1;
+
+        ulong prime = 2; 
+
+        nmod_poly_mat_t A;
+
+        nmod_poly_mat_init(A, rdim, cdim, prime);
+        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.2);
 
         result = core_test_kernel(A);
 
