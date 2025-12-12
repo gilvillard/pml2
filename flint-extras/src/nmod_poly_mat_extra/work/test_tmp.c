@@ -13,7 +13,7 @@
 
 int main(int argc, char ** argv)
 {
-    printf("Usage: %s OR %s [nbits] [rdim] [cdim] [degree] [kappa] [threshold]\n--\n", argv[0], argv[0]);
+    printf("Usage: %s OR %s [nbits] [rdim] [cdim] [degree] [kappa]\n--\n", argv[0], argv[0]);
 
     // disable line buffering
     setbuf(stdout, NULL);
@@ -23,7 +23,6 @@ int main(int argc, char ** argv)
     slong cdim = atoi(argv[3]);
     slong order = atoi(argv[4]);
     slong kappa = atoi(argv[5]);
-    slong threshold = atoi(argv[6]);
 
     flint_rand_t state;
     flint_rand_init(state);
@@ -40,13 +39,14 @@ int main(int argc, char ** argv)
     nmod_poly_mat_randtest_sparse(A, state, order+1, 0.8);
 
 
-    nmod_poly_mat_t N; // Not initialized 
+    nmod_poly_mat_t N; 
+    nmod_poly_mat_init(N, cdim, cdim, A->modulus);
 
     printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\tcdim = %ld,\
-        \n\tdegree = %ld, \n\tkappa = %ld, \n\tthreshold = %ld ...\n",prime,rdim,cdim,order,kappa,threshold);
+        \n\tdegree = %ld, \n\tkappa = %ld ...\n",prime,rdim,cdim,order,kappa);
 
 
-    slong i;
+    slong i,j;
     slong iz[rdim];
 
     
@@ -77,14 +77,14 @@ int main(int argc, char ** argv)
 
     slong nz;
 
+
     //printf("~~~~WARMUP~~~~\n");
-    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa, threshold);
+    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa);
     //printf("~~~~WARMUP DONE~~~~\n");
 
     tt = clock();
-    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa, threshold);
+    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa);
     t += (double)(clock()-tt) / CLOCKS_PER_SEC;
-
 
 
     nmod_poly_mat_t Nflint;
@@ -103,18 +103,23 @@ int main(int argc, char ** argv)
 
     if (nz !=0) {
 
-        slong nbnull;
+        nmod_poly_mat_t NN; 
+        nmod_poly_mat_init(NN, cdim, nz, A->modulus);
 
-        nbnull=N->c;
 
-        nmod_poly_mat_t Z;
-        nmod_poly_mat_init(Z, rdim, nbnull, A->modulus);
+        for (i = 0; i < cdim; i++)
+            for (j = 0; j < nz; j++) {
+                nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
+            }
 
-        nmod_poly_mat_mul(Z, A, N);
+            nmod_poly_mat_t Z;
+            nmod_poly_mat_init(Z, rdim, nz, A->modulus);
+
+            nmod_poly_mat_mul(Z, A, NN);
 
         if (nmod_poly_mat_is_zero(Z) !=0) 
         {
-            printf("\n Nullspace of dimension %ld, time: %f, time flint: %f, ratio: %f\n\n",nbnull,t,t2,(double) t2/t);
+            printf("\n Nullspace of dimension %ld, time: %f, time flint: %f, ratio: %f\n\n",nz,t,t2,(double) t2/t);
             return 1;
         }
 

@@ -24,7 +24,7 @@ extern "C" {
 
 
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t M, \
-                         const slong *ishift, const slong kappa, const slong threshold); 
+                         const slong *ishift, const slong kappa); 
 
 
 #ifdef __cplusplus

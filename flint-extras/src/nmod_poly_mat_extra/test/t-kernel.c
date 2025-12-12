@@ -36,10 +36,12 @@ int core_test_kernel(const nmod_poly_mat_t mat)
     // PML nullspace
     // -------------
 
-    nmod_poly_mat_t N; // Not initialized, to modify 
+    nmod_poly_mat_t N; 
+    nmod_poly_mat_init(N, n, n, mat->modulus);
+
     slong nz,nbnull;
 
-    int i;
+    int i,j;
     slong iz[m];
 
     for (i = 0; i < m; i++) 
@@ -47,9 +49,9 @@ int core_test_kernel(const nmod_poly_mat_t mat)
         iz[i]=0; 
     }
 
-    slong tshift[n];
+    slong degN[n];
 
-    nz=nmod_poly_mat_zls(N, tshift, mat, iz, 2, -1);
+    nz=nmod_poly_mat_zls(N, degN, mat, iz, 2);
 
     if (nz==0) 
         nbnull=nz;
@@ -61,6 +63,15 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
     if (nz !=0) {
 
+        nmod_poly_mat_t NN; 
+        nmod_poly_mat_init(NN, n, nz, mat->modulus);
+
+
+        for (i = 0; i < n; i++)
+            for (j = 0; j < nz; j++) {
+                nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
+            }
+
         nmod_poly_mat_t Z;
         nmod_poly_mat_init(Z, m, nbnull, mat->modulus);
 
@@ -69,7 +80,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
         verif = verif && nmod_poly_mat_is_zero(Z); 
 
         nmod_poly_mat_clear(Z);
-        nmod_poly_mat_clear(N);
+        nmod_poly_mat_clear(NN);
     }
 
     // printf("m %ld   n %ld\n",m,n);
@@ -77,6 +88,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
     // printf("nbnull %ld\n",nbnull);
     // printf("flint null %ld\n",n-rkflint);
 
+    nmod_poly_mat_clear(N);
     return verif; 
 
 }

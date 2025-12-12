@@ -24,7 +24,8 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     nmod_poly_mat_randtest_sparse(A, state, deg+1, sparse);
 
 
-    nmod_poly_mat_t N; // Not initialized for the moment 
+    nmod_poly_mat_t N; 
+    nmod_poly_mat_init(N, cdim, cdim, A->modulus);
 
     slong i;
     slong iz[rdim];
@@ -111,8 +112,8 @@ int main(int argc, char ** argv)
 
     int m;
 
-    for (m=60; m<80; m++) {
-        benchmark_zls(104729, m, m+10, 4, 1.0, 2, 2, state);
+    for (m=6; m<12; m++) {
+        benchmark_zls(104729, m, m+10, 4, 1.0, 2, -1, state);
     }
 
 

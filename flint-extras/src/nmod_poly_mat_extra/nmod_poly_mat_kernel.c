@@ -32,7 +32,7 @@
  * Output:
  *  M is modified in place 
  *  perm[n],initialized outside, the carried out permutation 
- *  sdeg[n] initialized outside 
+ *  sdeg[n] initialized outside
  * 
  */
  
@@ -68,20 +68,19 @@ void _nmod_poly_mat_sort_permute_columns_zls(nmod_poly_mat_t M, slong *sdeg, \
  *    A in m x n 
  *    ishift[n], initialized outside, the shift for the kernel 
  *    kappa, an integer >= 2, for the order of the order bases 
- *              kappa * s instead of 3 *s in ZLS
- *    threshold, experimental, use flint nullspace directly if  m <= threshold  
+ *              kappa * s instead of 3 *s in ZLS  
  * 
  *  Output:
  *    returns the dimension w of the kernel, which may be zero 
  *    N, is initialized n x n outside 
  *       its first w columns give a minimal basis of the kernel   
- *    degN[n], initialized outside, its first w entries 
- *        are the ishift shift degrees of the kernel basis 
+ *    degN[n], initialized outside, its first w entries are concerned,
+ *        they are the ishift shift degrees of the kernel basis 
  * 
  */
 
 int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A, \
-                                 const slong *ishift, const slong kappa, const slong threshold)
+                                 const slong *ishift, const slong kappa)
 {
 
     slong i,j,k;
@@ -90,62 +89,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     slong n = A->c;
 
 
-    if (m<=threshold) {
-
-
-        //++++++++++++++
-        printf("--- \n %ld, %ld\n",m,n);
-
-        printf("\n [ ");
-        for (i=0; i<n-1; i++) 
-            printf(" %ld, ",ishift[i]);
-        printf(" %ld ]\n\n", ishift[i]);
-
-
-        slong iz[m];
-        for (i = 0; i < m; i++) 
-            iz[i]=0; 
-
-        slong sdeg[n];
-
-        nmod_poly_mat_column_degree(sdeg, A, iz);
-
-        printf("\n [ ");
-        for (i=0; i<n-1; i++) 
-            printf(" %ld, ",sdeg[i]);
-        printf(" %ld ]\n\n", sdeg[i]);
-
-        //++++++++++++++
-
-        slong nz;
-        nmod_poly_mat_t TN;
-        nmod_poly_mat_init(TN, n, n, A->modulus);
-
-        nz=nmod_poly_mat_nullspace(TN,A);
-
-        if (nz==0) {
-            return 0;
-        }
-        else {
-
-            nmod_poly_mat_init(N, n, nz, A->modulus);
-
-            for (i = 0; i < n; i++)
-                for (j = 0; j < nz; j++) {
-        
-                    nmod_poly_set(nmod_poly_mat_entry(N, i, j), nmod_poly_mat_entry(TN, i, j));
-
-                }
-
-            nmod_poly_mat_column_degree(degN, N, ishift);
-
-        return nz;    
-        }
-
-    }
-
-
-    //slong kappa=2;
     slong min_mn;
     slong rho=0;
 
@@ -260,7 +203,9 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     if (n2==0) {
 
+        // +++ Should be ok even if P1 is smaller 
         nmod_poly_mat_init_set(N,P1);
+        //nmod_poly_mat_set(N,P1);
         nmod_poly_mat_column_degree(degN, P1, ishift);
 
         return n1;
@@ -288,7 +233,9 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         if (n1==0) 
             return 0; 
         else {
+            // +++ Should be ok even if P1 is smaller
             nmod_poly_mat_init_set(N,P1);
+            //nmod_poly_mat_set(N,P1);
             nmod_poly_mat_column_degree(degN, P1, ishift);
 
             return n1;
@@ -369,11 +316,26 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
-    res=nmod_poly_mat_zls_sorted(N1, degN, G1, shift, kappa, threshold); 
+    // +++
+    // nmod_poly_mat_t TT1;
+    // nmod_poly_mat_init(TT1, n2, n2, A->modulus);
 
-    slong c1 = N1->c;
+    //res=nmod_poly_mat_zls_sorted(TT1, degN, G1, shift, kappa); 
 
-    if (res != 0) {
+
+    slong c1=0;
+    slong c2=0;
+
+    c1=nmod_poly_mat_zls_sorted(N1, degN, G1, shift, kappa); 
+
+    // nmod_poly_mat_init(N1, n2, c1, A->modulus);
+    // for (i = 0; i < n2; i++) {
+    //     for (j = 0; j < c1; j++) {
+    //         nmod_poly_set(nmod_poly_mat_entry(N1, i, j), nmod_poly_mat_entry(TT1, i, j));
+    //     }
+    // }
+
+    if (c1 != 0) {
         
         nmod_poly_mat_t G3;
         nmod_poly_mat_init(G3, m-new_m, c1, A->modulus);
@@ -384,11 +346,11 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             shift[i]=degN[i];
         }
 
-        res=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa, threshold); 
+        c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); // res changes 
 
     }
 
-    if (res==0) {
+    if ((c1==0) || (c2==0)){
 
         if (n1==0) {
             return 0; 
@@ -402,8 +364,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     }
 
-    slong c2 = N2->c;
-
     nmod_poly_mat_t Q1;
     nmod_poly_mat_init(Q1, n, c1, A->modulus);
 
@@ -413,6 +373,9 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_init(Q, n, c2, A->modulus);
 
     nmod_poly_mat_mul(Q, Q1, N2);
+
+    nmod_poly_mat_clear(N1);
+    nmod_poly_mat_clear(N2);
 
     if (n1 ==0) {
 
@@ -468,7 +431,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
 
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, \
-                         const slong *ishift, const slong kappa, const slong threshold)
+                         const slong *ishift, const slong kappa)
 {
 
     slong i,j,k;
@@ -497,7 +460,7 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
     slong res;
 
     nmod_poly_mat_t NT;
-    res=nmod_poly_mat_zls_sorted(NT, degN, A, shift, kappa, threshold);
+    res=nmod_poly_mat_zls_sorted(NT, degN, A, shift, kappa);
 
 
     // printf("--- NT \n");
