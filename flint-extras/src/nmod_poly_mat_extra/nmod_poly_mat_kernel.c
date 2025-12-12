@@ -55,6 +55,8 @@ void _nmod_poly_mat_sort_permute_columns_zls(nmod_poly_mat_t M, slong *sdeg, \
 
 /**
  *  
+ *  Internal function 
+ * 
  *  Right shifted kernel of a polynomial matrix, assuming that the columns has been 
  *     sorted by shifted degree 
  * 
@@ -66,13 +68,13 @@ void _nmod_poly_mat_sort_permute_columns_zls(nmod_poly_mat_t M, slong *sdeg, \
  *    
  *  Input:
  *    A in m x n 
- *    ishift[n], initialized outside, the shift for the kernel 
+ *    ishift[n], initialized outside, the shift for the kernel   !!!! 0 pas -1
  *    kappa, an integer >= 2, for the order of the order bases 
  *              kappa * s instead of 3 *s in ZLS  
  * 
  *  Output:
  *    returns the dimension w of the kernel, which may be zero 
- *    N, is initialized n x n outside 
+ *    N, is initialized here (should be freed outside) 
  *       its first w columns give a minimal basis of the kernel   
  *    degN[n], initialized outside, its first w entries are concerned,
  *        they are the ishift shift degrees of the kernel basis 
@@ -430,6 +432,37 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 }
 
 
+/**
+ *  
+ *  Right shifted kernel of a polynomial matrix, assuming that the columns has been 
+ *     sorted by shifted degree 
+ * 
+ *  Algorithm of Wei Zhou, George Labahn, and Arne Storjohann
+ *   "Computing Minimal Nullspace Bases"
+ *    ISSAC 2012, https://dl.acm.org/doi/abs/10.1145/2442829.2442881
+ * 
+ *  Calls nmod_poly_mat_zls_sorted after an initial sorting 
+ * 
+ *  TODO/TO SEE: 
+ *    
+ *  Input:
+ *    iA in m x n 
+ *    ishift[n], initialized outside, the shift for the kernel 
+ *    kappa, an integer >= 2, for the order of the order bases 
+ *              kappa * s instead of 3 *s in ZLS  
+ * 
+ * !!! degree 0 not -1
+ * 
+ *  Output:
+ *    returns the dimension w of the kernel, which may be zero 
+ *    N, is initialized here (should be freed outside) 
+ *       its first w columns give a minimal basis of the kernel   
+ *    degN[n], initialized outside, its first w entries are concerned,
+ *        they are the ishift shift degrees of the kernel basis 
+ * 
+ */
+
+
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, \
                          const slong *ishift, const slong kappa)
 {
@@ -450,10 +483,28 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
         }
     }
 
-
     slong * perm = flint_malloc(n * sizeof(slong));
+    slong sdeg[n];
 
-    slong shift[n];
+    // No input shift, simply the column degrees, then ordered 
+    if (ishift == NULL) {
+
+        slong iz[m];
+        for (i = 0; i < m; i++) 
+            iz[i]=0; 
+
+        nmod_poly_mat_column_degree(sdeg, A, iz);
+
+        for (j=0; j<n; j++) 
+            if (sdeg[j] < 0) sdeg[j]=0;
+
+        _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);
+
+
+    }
+    
+
+   
 
     _nmod_poly_mat_sort_permute_columns_zls(A,shift,perm,ishift);   
 
@@ -461,6 +512,12 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
 
     nmod_poly_mat_t NT;
     res=nmod_poly_mat_zls_sorted(NT, degN, A, shift, kappa);
+
+
+    slong n = M->c;
+    slong j;
+
+    
 
 
     // printf("--- NT \n");
