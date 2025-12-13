@@ -110,11 +110,9 @@ int main(int argc, char ** argv)
 
     int m;
 
-    for (m=6; m<12; m++) {
-        benchmark_zls(104729, m, m+10, 4, 1.0, 2, state);
+    for (m=20; m<100; m++) {
+        benchmark_zls(104729, m, m+20, 2, 1.0, 2, state);
     }
-
-
 
     flint_rand_clear(state);
 

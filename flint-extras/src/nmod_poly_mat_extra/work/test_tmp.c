@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.2);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.8);
 
 
     nmod_poly_mat_t N; 
@@ -97,9 +97,9 @@ int main(int argc, char ** argv)
     nmod_poly_mat_nullspace(Nflint,A);
     t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
-    // printf("N output \n");
-    // nmod_poly_mat_print_pretty(N, "x");
-    // printf("\n");
+    printf("N output \n");
+    nmod_poly_mat_print_pretty(N, "x");
+    printf("\n");
 
     if (nz !=0) {
 

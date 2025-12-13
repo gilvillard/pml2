@@ -134,7 +134,30 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
         }
     }
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 2; i++)
+    {
+        ulong rdim = 40 + n_randint(state, 8);
+        ulong cdim = rdim + n_randint(state, 8);
+        ulong deg = 0;
+
+        ulong prime = 7; 
+
+        nmod_poly_mat_t A;
+
+        nmod_poly_mat_init(A, rdim, cdim, prime);
+        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
+
+        result = core_test_kernel(A);
+
+        nmod_poly_mat_clear(A);
+
+        if (!result) {
+            TEST_FUNCTION_FAIL("rdim = %wu, cdim = %wu, degree = %wu, p = %wu\n", \
+                rdim, cdim, deg, prime);
+        }
+    }
+
+    for (i = 0; i < 2; i++)
     {
         ulong rdim = 20 + n_randint(state, 8);
         ulong cdim = rdim -8;

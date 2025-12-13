@@ -329,8 +329,12 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         }
 
         c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); 
+        nmod_poly_mat_clear(G3);
 
     }
+
+    nmod_poly_mat_clear(G1);
+    nmod_poly_mat_clear(G2);
 
     // the recursive calls did not provide anything more 
 
@@ -343,6 +347,8 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             nmod_poly_mat_init_set(N,P1);
             nmod_poly_mat_column_degree(degN, P1, ishift);
 
+            nmod_poly_mat_clear(P1);
+            nmod_poly_mat_clear(P2);
             return n1;
         }
     }
@@ -363,6 +369,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_clear(N1);
     nmod_poly_mat_clear(N2);
     nmod_poly_mat_clear(Q1);    
+    nmod_poly_mat_clear(P2);
 
     if (n1 ==0) {
 

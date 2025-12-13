@@ -22,18 +22,22 @@ extern "C" {
 
 /**
  *  
- *  Right shifted kernel of a polynomial matrix
+ *  Right shifted kernel of a polynomial matrix, assuming that the columns has been 
+ *     sorted by shifted degree 
  * 
  *  Algorithm of Wei Zhou, George Labahn, and Arne Storjohann
  *   "Computing Minimal Nullspace Bases"
  *    ISSAC 2012, https://dl.acm.org/doi/abs/10.1145/2442829.2442881
  * 
+ *  Calls nmod_poly_mat_zls_sorted after an initial sorting 
+ * 
  *  TODO/TO SEE: 
  *    
  * Input: 
- *    A in m x n 
- *    ishift[n], initialized outside, the shift for the kernel   
- *      values should be at least 0 (even for zero columns in A)
+ *    iA in m x n 
+ *     ishift[n], NULL (the degrees are computed) or initialized outside, 
+ *      the shift for the kernel    
+ *      values should be at least 0 (even for zero columns in A
  *      "with entries arranged in non-decreasing order and bounding the 
  *       corresponding column degrees of A." 
  *    kappa, an integer >= 2, for the order of the order bases 
