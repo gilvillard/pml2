@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.8);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.2);
 
 
     nmod_poly_mat_t N; 
@@ -79,11 +79,11 @@ int main(int argc, char ** argv)
 
 
     //printf("~~~~WARMUP~~~~\n");
-    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa);
+    nz=nmod_poly_mat_zls(N, degN, A, NULL, kappa);
     //printf("~~~~WARMUP DONE~~~~\n");
 
     tt = clock();
-    nz=nmod_poly_mat_zls(N, degN, A, iz, kappa);
+    nz=nmod_poly_mat_zls(N, degN, A, NULL, kappa);
     t += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
 

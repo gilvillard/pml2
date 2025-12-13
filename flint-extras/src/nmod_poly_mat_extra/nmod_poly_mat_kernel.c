@@ -15,14 +15,18 @@
 #include <flint/profiler.h>
 
 
-
+/**
+ * 
+ * The content of the file has not yet been tested very extensively
+ * 
+ */ 
 
 /**
  * 
  * In place, M is m x n, shifted column degrees 
  *   permute the columns in nondecreasing order 
  * 
- * !!! Todo/to see: zero is set to degree 0 (not -1), for specific use 
+ * Todo/to see: zero is set to degree 0 (not -1), for specific use 
  *     in ZLS algorithm for the kernel
  * 
  * Input:
@@ -68,14 +72,19 @@ void _nmod_poly_mat_sort_permute_columns_zls(nmod_poly_mat_t M, slong *sdeg, \
  *    
  *  Input:
  *    A in m x n 
- *    ishift[n], initialized outside, the shift for the kernel   !!!! 0 pas -1
+ *    ishift[n], NULL (the degrees are computed) or initialized outside, 
+ *      the shift for the kernel   
+ *      values should be at least 0 (even for zero columns in A
+ *      "with entries arranged in non-decreasing order and bounding the 
+ *       corresponding column degrees of A." 
  *    kappa, an integer >= 2, for the order of the order bases 
  *              kappa * s instead of 3 *s in ZLS  
  * 
  *  Output:
  *    returns the dimension w of the kernel, which may be zero 
- *    N, is initialized here (should be freed outside) 
- *       its first w columns give a minimal basis of the kernel   
+ *    N, n x w, is initialized here only when w > 0, 
+ *           should be freed outside in that case only,
+ *            gives a minimal basis of the right kernel   
  *    degN[n], initialized outside, its first w entries are concerned,
  *        they are the ishift shift degrees of the kernel basis 
  * 
@@ -94,25 +103,29 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     slong min_mn;
     slong rho=0;
 
+    // Tuning the order of the subsequent approximant 
+    // ----------------------------------------------
+
     if (m <= n) 
     {
         min_mn=m;
-        for (i=n-m; i<n; i++)   // Pb null shift 
+        for (i=n-m; i<n; i++)   
             rho+=ishift[i];   
     }
     else 
     {
         min_mn=n;
-
-        // for (i=0; i<n; i++)   // Pb null shift 
-        //     rho+=ishift[i];  
+        for (i=0; i<n; i++)   
+            rho+=ishift[i];  
         // printf("\n m > n  %ld  %ld",m,n);   // To see, rectangular case 
     }  
 
     slong s;
     s = ceil((double) rho/min_mn); 
 
-    //printf("\n rho: %ld    s: %ld \n",rho, s);
+   
+    // Transposed A for the approximant PT on the left 
+    // PT will then be use without transposing 
 
     nmod_poly_mat_t AT;
     nmod_poly_mat_init(AT, n, m, A->modulus);
@@ -121,57 +134,34 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_t PT;
     nmod_poly_mat_init(PT, n, n, A->modulus);
 
-   // shift is modified in place 
+    // Approximant PT 
+    // shift is modified in place 
+    // --------------------------
+
     slong shift[n];
     for (i=0; i<n; i++)
     {
         shift[i]=ishift[i];
     }
     
-
     nmod_poly_mat_pmbasis(PT, shift, AT, kappa*s+1);
 
+    // Looking for zero residues and non zero residues
+    //  the global residue is reused later 
+    // -----------------------------------------------
 
-    nmod_poly_mat_t P;
-    nmod_poly_mat_init(P, n, n, A->modulus);
-    nmod_poly_mat_transpose(P,PT);
-
-
-    // printf("\n");
-    // nmod_poly_mat_print_pretty(P, "x");
-    // printf("\n");
-
-
-    // printf("\n [ ");
-    // for (i=0; i<n-1; i++) 
-    //     printf(" %ld, ",shift[i]);
-    // printf(" %ld ]\n",shift[i]);
-
-
-    nmod_poly_mat_t R;
-    nmod_poly_mat_init(R, m, n, A->modulus);
-
-    nmod_poly_mat_mul(R,A,P);
-
-    // printf("\n");
-    // nmod_poly_mat_print_pretty(R, "x");
-    // printf("\n");
-
+    nmod_poly_mat_t RT;
+    nmod_poly_mat_init(RT, n, m, A->modulus);
+    nmod_poly_mat_mul(RT,PT,AT);
+    
     slong cdeg[n];
+    nmod_poly_mat_row_degree(cdeg, RT, NULL);
 
-    slong zshift[m];
-    for (i=0; i<m; i++)
-    {
-        zshift[i]=0;
-    }
+    nmod_poly_mat_clear(AT);
 
-    nmod_poly_mat_column_degree(cdeg, R, zshift);
-
-
-    // printf("\n [ ");
-    // for (i=0; i<n-1; i++) 
-    //     printf(" %ld, ",cdeg[i]);
-    // printf(" %ld ]\n",cdeg[i]);
+    // Zero residue matrix P1  n x n1 
+    // nonzero residues matrix P2  n x n2
+    //-----------------------------------
 
     slong n1=0;
     slong n2;
@@ -180,7 +170,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         if (cdeg[j]<0) 
             n1+=1;
     }
-
 
     nmod_poly_mat_t P1;
 
@@ -193,23 +182,20 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             if (cdeg[j]<0) {
 
                 for (i = 0; i < n; i++)
-                    nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(P, i, j));
+                    nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(PT, j, i));
                 k+=1;
             }
-
         }
     }
     
-
     n2=n-n1;
 
+    // the kernel is found 
     if (n2==0) {
-
-        // +++ Should be ok even if P1 is smaller 
         nmod_poly_mat_init_set(N,P1);
-        //nmod_poly_mat_set(N,P1);
         nmod_poly_mat_column_degree(degN, P1, ishift);
 
+        nmod_poly_mat_clear(P1);
         return n1;
     }
 
@@ -222,60 +208,75 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         if (cdeg[j]>=0) {
 
             for (i = 0; i < n; i++)
-                nmod_poly_set(nmod_poly_mat_entry(P2, i, k), nmod_poly_mat_entry(P, i, j));
+                nmod_poly_set(nmod_poly_mat_entry(P2, i, k), nmod_poly_mat_entry(PT, j, i));
             k+=1;
         }
 
     }
 
+    nmod_poly_mat_clear(PT);
+
+    //  Special case m=1
+    //  before the divide and conquer on m
+    //  the kernel is found 
+    // -----------------------------------
 
     // !!!!!  CHECK
-    if (m==1){   // Then n2=0 ? 
+    if (m==1){   // Then n2 should be 1, thanks to the choice of kappa 
 
         if (n1==0) 
             return 0; 
         else {
-            // +++ Should be ok even if P1 is smaller
             nmod_poly_mat_init_set(N,P1);
-            //nmod_poly_mat_set(N,P1);
             nmod_poly_mat_column_degree(degN, P1, ishift);
 
+            nmod_poly_mat_clear(P1);
             return n1;
         }
-
     }
 
-
-    // n2 <> 0 and m> 1
-    // ----------------
+    //  Now n2 <> 0 and m > 1
+    //    one can proceed to the divide and conquer from the rows 
+    //    of the nonzero residue P2, and of A.P2
+    // --------------------------------------------------------
 
     slong * perm = flint_malloc(n2 * sizeof(slong));
 
     _nmod_poly_mat_sort_permute_columns_zls(P2,degN,perm,ishift);
 
     for (i = 0; i < n2; i++) {
-        degN[i]=degN[i]-kappa*s;
+        degN[i]=degN[i]-kappa*s;  // used below for the recursive calls 
     }
-    
 
-    // printf("\n [ ");
-    // for (i=0; i<n2-1; i++) 
-    //     printf(" %ld, ",degN[i]);
-    // printf(" %ld ]\n",degN[n2-1]);
-
-
-    nmod_poly_mat_t G;
-    nmod_poly_mat_init(G, m, n2, A->modulus);
-
-    nmod_poly_mat_mul(G, A, P2);
 
     nmod_poly_mat_t TT;
     nmod_poly_mat_init(TT, m, n2, A->modulus);
 
+    // We extract G (temporary TT) from RT as we have been extracting P2 from PT
+    //   and apply above ordering of P2 
+    k=0;
+    for (j = 0; j < n; j++)
+    {
+        if (cdeg[j]>=0) {
 
+            for (i = 0; i < m; i++)
+                nmod_poly_set(nmod_poly_mat_entry(TT, i, k), nmod_poly_mat_entry(RT, j, i));
+            k+=1;
+        }
+
+    }
+    nmod_poly_mat_clear(RT);
+
+    nmod_poly_mat_permute_columns(TT, perm, NULL);
+
+    nmod_poly_mat_t G;
+    nmod_poly_mat_init(G, m, n2, A->modulus);
+
+    nmod_poly_mat_shift_right(G,TT,kappa*s);
     
-    nmod_poly_mat_shift_right(TT,G,kappa*s);
-    
+
+    // We split G for the recursive call
+    // ---------------------------------
 
     slong new_m=floor((double) m/2);
 
@@ -284,7 +285,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     for (i = 0; i < new_m; i++){
         for (j = 0; j < n2; j++) {
-            nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(TT, i, j));
+            nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(G, i, j));
         }
     }
 
@@ -293,49 +294,28 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     for (i = 0; i < m-new_m; i++) {
         for (j = 0; j < n2; j++) {
-            nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(TT, i+new_m, j));
+            nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(G, i+new_m, j));
         }
     }
 
-    // printf("--- G1 \n");
-    // nmod_poly_mat_print_pretty(G1, "x");
-    // printf("\n");
+    nmod_poly_mat_clear(TT);
+    nmod_poly_mat_clear(G);
 
-    // printf("--- G2 \n");
-    // nmod_poly_mat_print_pretty(G2, "x");
-    // printf("\n");
 
-    // Change the dimension of the shift? degN can be reused in output
-
-    //+++++++++++++++++++++++++++++++++++++++++
+    // Recursive calls 
+    // ---------------
 
     for (i=0; i<n2; i++) {
-        shift[i]=degN[i];
+        shift[i]=degN[i]; // for input n the first recursive call and degN in output 
     }
-
-    slong res;
 
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
-
-    // +++
-    // nmod_poly_mat_t TT1;
-    // nmod_poly_mat_init(TT1, n2, n2, A->modulus);
-
-    //res=nmod_poly_mat_zls_sorted(TT1, degN, G1, shift, kappa); 
-
 
     slong c1=0;
     slong c2=0;
 
     c1=nmod_poly_mat_zls_sorted(N1, degN, G1, shift, kappa); 
-
-    // nmod_poly_mat_init(N1, n2, c1, A->modulus);
-    // for (i = 0; i < n2; i++) {
-    //     for (j = 0; j < c1; j++) {
-    //         nmod_poly_set(nmod_poly_mat_entry(N1, i, j), nmod_poly_mat_entry(TT1, i, j));
-    //     }
-    // }
 
     if (c1 != 0) {
         
@@ -348,9 +328,11 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             shift[i]=degN[i];
         }
 
-        c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); // res changes 
+        c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); 
 
     }
+
+    // the recursive calls did not provide anything more 
 
     if ((c1==0) || (c2==0)){
 
@@ -363,8 +345,10 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
             return n1;
         }
-
     }
+
+    // A new part of the kernel has been found by the recursive calls, Q
+    // -----------------------------------------------------------------
 
     nmod_poly_mat_t Q1;
     nmod_poly_mat_init(Q1, n, c1, A->modulus);
@@ -378,17 +362,18 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     nmod_poly_mat_clear(N1);
     nmod_poly_mat_clear(N2);
+    nmod_poly_mat_clear(Q1);    
 
     if (n1 ==0) {
 
-        nmod_poly_mat_init_set(N,Q);
+        nmod_poly_mat_init_set(N,Q); // We should not need to copy 
         nmod_poly_mat_column_degree(degN, Q, ishift);
 
+        nmod_poly_mat_clear(Q); 
         return c2;
 
     }
     else {
-
         nmod_poly_mat_init(N, n, n1+c2, A->modulus);
 
         for (i = 0; i < n; i++) {
@@ -403,32 +388,28 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             }
         }
 
+        slong odeg[n1+c2]; // Too big, to see
 
-        slong oshift[m]; // Too big, to see
-
-        nmod_poly_mat_column_degree(oshift, P1, ishift);
+        nmod_poly_mat_column_degree(odeg, P1, ishift);
 
         for (i=0; i<n1; i++) {
-            degN[i]=oshift[i];
+            degN[i]=odeg[i];
         }
 
-        nmod_poly_mat_column_degree(oshift, Q, ishift);
+        nmod_poly_mat_column_degree(odeg, Q, ishift);
 
         for (i=0; i<c2; i++) {
-            degN[i+n1]=oshift[i];
+            degN[i+n1]=odeg[i];
         }
 
+        nmod_poly_mat_clear(P1); 
+        nmod_poly_mat_clear(Q); 
+        
         return n1+c2;
 
     }
 
-    // nmod_poly_mat_clear(A);
-    // nmod_poly_mat_clear(B);
-    // nmod_poly_mat_clear(X);
-    // nmod_poly_mat_clear(P);
-    // nmod_poly_mat_clear(Q);
-
-    return 0; // ??? 
+    return 0; 
 }
 
 
@@ -445,23 +426,28 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
  * 
  *  TODO/TO SEE: 
  *    
- *  Input:
+ * Input: 
  *    iA in m x n 
- *    ishift[n], initialized outside, the shift for the kernel 
+ *     ishift[n], NULL (the degrees are computed) or initialized outside, 
+ *      the shift for the kernel    
+ *      values should be at least 0 (even for zero columns in A
+ *      "with entries arranged in non-decreasing order and bounding the 
+ *       corresponding column degrees of A." 
  *    kappa, an integer >= 2, for the order of the order bases 
  *              kappa * s instead of 3 *s in ZLS  
- * 
- * !!! degree 0 not -1
- * 
+ *
  *  Output:
  *    returns the dimension w of the kernel, which may be zero 
- *    N, is initialized here (should be freed outside) 
+ *    N, is initialized  n x n outside  
  *       its first w columns give a minimal basis of the kernel   
  *    degN[n], initialized outside, its first w entries are concerned,
- *        they are the ishift shift degrees of the kernel basis 
+ *        they are the ishift shifted degrees of the kernel basis 
  * 
  */
 
+/**
+ *  Calls nmod_poly_mat_zls_sorted after an initial sorting 
+ */
 
 int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, \
                          const slong *ishift, const slong kappa)
@@ -474,77 +460,66 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
 
 
     nmod_poly_mat_t A;
-    nmod_poly_mat_init(A, m, n, iA->modulus);
-
-
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-            nmod_poly_set(nmod_poly_mat_entry(A, i, j), nmod_poly_mat_entry(iA,i,j));
-        }
-    }
+    nmod_poly_mat_init_set(A, iA);
 
     slong * perm = flint_malloc(n * sizeof(slong));
     slong sdeg[n];
 
     // No input shift, simply the column degrees, then ordered 
+    //   a permutation is carried out in place
+    // -------------------------------------------------------
+
     if (ishift == NULL) {
 
-        slong iz[m];
-        for (i = 0; i < m; i++) 
-            iz[i]=0; 
-
-        nmod_poly_mat_column_degree(sdeg, A, iz);
+        nmod_poly_mat_column_degree(sdeg, A, NULL);
 
         for (j=0; j<n; j++) 
             if (sdeg[j] < 0) sdeg[j]=0;
 
         _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);
-
-
     }
-    
+    // Input shift, we sort  
+    // --------------------
+    else {  
 
-   
+        for (j=0; j<n; j++) 
+            sdeg[j]=ishift[i];
 
-    _nmod_poly_mat_sort_permute_columns_zls(A,shift,perm,ishift);   
+        _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);
+    }
 
-    slong res;
+    // Call to ZLS
+    // -----------
+
+    slong nz;
+    slong tdeg[n];
 
     nmod_poly_mat_t NT;
-    res=nmod_poly_mat_zls_sorted(NT, degN, A, shift, kappa);
+    nz=nmod_poly_mat_zls_sorted(NT, tdeg, A, sdeg, kappa);
 
+    // Undo the permutation for the kernel of the input matrix
+    // -------------------------------------------------------
 
-    slong n = M->c;
-    slong j;
-
-    
-
-
-    // printf("--- NT \n");
-    // nmod_poly_mat_print_pretty(NT, "x");
-    // printf("\n");
-
-    // Back to A 
-    if (res !=0) {
-
-        slong nz = NT->c;
-
-        nmod_poly_mat_init(N, n, nz, A->modulus);
+    if (nz !=0) {
 
         for (k = 0; k < n; k++) {
             for (j = 0; j < nz; j++){
-
                 nmod_poly_set(nmod_poly_mat_entry(N, perm[k], j), nmod_poly_mat_entry(NT,k,j));
+                degN[perm[k]]=tdeg[k];
             }
         }
 
+        nmod_poly_mat_clear(NT); // Since nz > 0
+
         return nz; 
     }
-    
+
+    flint_free(perm);
+    nmod_poly_mat_clear(A);
+
     return 0; 
     
 }
-
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 // vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s

@@ -20,10 +20,35 @@
 extern "C" {
 #endif
 
+/**
+ *  
+ *  Right shifted kernel of a polynomial matrix
+ * 
+ *  Algorithm of Wei Zhou, George Labahn, and Arne Storjohann
+ *   "Computing Minimal Nullspace Bases"
+ *    ISSAC 2012, https://dl.acm.org/doi/abs/10.1145/2442829.2442881
+ * 
+ *  TODO/TO SEE: 
+ *    
+ * Input: 
+ *    A in m x n 
+ *    ishift[n], initialized outside, the shift for the kernel   
+ *      values should be at least 0 (even for zero columns in A)
+ *      "with entries arranged in non-decreasing order and bounding the 
+ *       corresponding column degrees of A." 
+ *    kappa, an integer >= 2, for the order of the order bases 
+ *              kappa * s instead of 3 *s in ZLS  
+ *
+ *  Output:
+ *    returns the dimension w of the kernel, which may be zero 
+ *    N, is initialized  n x n outside  
+ *       its first w columns give a minimal basis of the kernel   
+ *    degN[n], initialized outside, its first w entries are concerned,
+ *        they are the ishift shifted degrees of the kernel basis 
+ * 
+ */
 
-
-
-int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t M, \
+int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, \
                          const slong *ishift, const slong kappa); 
 
 

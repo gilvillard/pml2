@@ -13,8 +13,8 @@
 
 // !!!!! cdim > rdim 
 
-void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse, slong kappa, \
-                    slong threshold, flint_rand_t state)
+void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse, \
+                            slong kappa, flint_rand_t state)
 {
     
 
@@ -27,14 +27,12 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     nmod_poly_mat_t N; 
     nmod_poly_mat_init(N, cdim, cdim, A->modulus);
 
-    slong i;
-    slong iz[rdim];
-
-    
+   
     slong degN[cdim];
 
-    for (i = 0; i < rdim; i++) 
-        iz[i]=0; 
+    // slong iz[rdim];
+    // for (i = 0; i < rdim; i++) 
+    //     iz[i]=0; 
 
 
     nmod_poly_mat_t Nflint;
@@ -57,7 +55,7 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     for (int i=0; i<nb_iter; i++)
     {
         timeit_start(timer1);
-        nmod_poly_mat_zls(N, degN, A, iz, kappa,threshold);
+        nmod_poly_mat_zls(N, degN, A, NULL, kappa);
         timeit_stop(timer1);
         t_pml += timer1->wall;
 
@@ -113,7 +111,7 @@ int main(int argc, char ** argv)
     int m;
 
     for (m=6; m<12; m++) {
-        benchmark_zls(104729, m, m+10, 4, 1.0, 2, -1, state);
+        benchmark_zls(104729, m, m+10, 4, 1.0, 2, state);
     }
 
 

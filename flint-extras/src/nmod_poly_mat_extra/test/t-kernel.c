@@ -39,33 +39,28 @@ int core_test_kernel(const nmod_poly_mat_t mat)
     nmod_poly_mat_t N; 
     nmod_poly_mat_init(N, n, n, mat->modulus);
 
-    slong nz,nbnull;
+    slong nz;
 
     int i,j;
-    slong iz[m];
 
-    for (i = 0; i < m; i++) 
-    {
-        iz[i]=0; 
-    }
+    // slong iz[m];
+
+    // for (i = 0; i < m; i++) 
+    // {
+    //     iz[i]=0; 
+    // }
 
     slong degN[n];
 
-    nz=nmod_poly_mat_zls(N, degN, mat, iz, 2);
-
-    if (nz==0) 
-        nbnull=nz;
-    else
-        nbnull = N->c;
+    nz=nmod_poly_mat_zls(N, degN, mat, NULL, 2);
 
     int verif;
-    verif =  (nz==nbnull) && (n-rkflint == nz);
+    verif =  (n-rkflint == nz);
 
     if (nz !=0) {
 
         nmod_poly_mat_t NN; 
         nmod_poly_mat_init(NN, n, nz, mat->modulus);
-
 
         for (i = 0; i < n; i++)
             for (j = 0; j < nz; j++) {
@@ -73,25 +68,20 @@ int core_test_kernel(const nmod_poly_mat_t mat)
             }
 
         nmod_poly_mat_t Z;
-        nmod_poly_mat_init(Z, m, nbnull, mat->modulus);
+        nmod_poly_mat_init(Z, m, nz, mat->modulus);
 
-        nmod_poly_mat_mul(Z, mat, N);
+        nmod_poly_mat_mul(Z, mat, NN);
 
         verif = verif && nmod_poly_mat_is_zero(Z); 
 
         nmod_poly_mat_clear(Z);
         nmod_poly_mat_clear(NN);
+
     }
-
-    // printf("m %ld   n %ld\n",m,n);
-    // printf("nz %ld\n",nz);
-    // printf("nbnull %ld\n",nbnull);
-    // printf("flint null %ld\n",n-rkflint);
-
-    nmod_poly_mat_clear(N);
+    
     return verif; 
-
 }
+
 
 TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
 {
@@ -116,14 +106,16 @@ TEST_FUNCTION_START(nmod_poly_mat_kernel, state)
         nmod_poly_mat_t A;
 
         if (i < 4) {
-            nmod_poly_mat_init(A, rdim, rdim, prime);
+            cdim=rdim;
+            nmod_poly_mat_init(A, rdim, cdim, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 1.0);
         }
         else if (i < 8) {
-            nmod_poly_mat_init(A, rdim, rdim+1, prime);
+            cdim=rdim+1;
+            nmod_poly_mat_init(A, rdim, cdim, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
         }
-        else if (i < 12) {
+        else if (i < 12) { 
             nmod_poly_mat_init(A, rdim, cdim, prime);
             nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.2);
         }
