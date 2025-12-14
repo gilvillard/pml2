@@ -456,7 +456,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
  *  Calls nmod_poly_mat_zls_sorted after an initial sorting 
  */
 
-int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, \
+int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, \
                          const slong *ishift, const slong kappa)
 {
 
@@ -477,7 +477,6 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
     // -------------------------------------------------------
 
     if (ishift == NULL) {
-
         nmod_poly_mat_column_degree(sdeg, A, NULL);
 
         for (j=0; j<n; j++) 
@@ -490,9 +489,9 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
     else {  
 
         for (j=0; j<n; j++) 
-            sdeg[j]=ishift[i];
+            sdeg[j]=ishift[j];
 
-        _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);
+        _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);        
     }
 
     // Call to ZLS
@@ -526,6 +525,105 @@ int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t iA, 
 
     return 0; 
     
+}
+
+
+/**
+ * Experimental, should not be really considered  
+ *
+ */
+
+int nmod_poly_mat_approximant_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A, \
+                                 const slong *ishift)
+{
+
+    slong i,j,k;
+
+    slong m = A->r;
+    slong n = A->c;
+
+
+    slong delta;
+    slong deg[n];
+
+    nmod_poly_mat_column_degree(deg, A, NULL);
+
+    slong degmax=deg[0];
+    for (i=1; i<n; i++)
+        if (degmax < deg[i]) 
+            degmax=deg[i];
+
+    slong min_nm=n;
+    if (n >m) 
+        min_nm=m;
+
+    nmod_poly_mat_t AT;
+    nmod_poly_mat_init(AT, n, m, A->modulus);
+    nmod_poly_mat_transpose(AT,A);
+
+    nmod_poly_mat_t PT;
+    nmod_poly_mat_init(PT, n, n, A->modulus);
+
+
+    // Approximant PT 
+    // shift is modified in place 
+    // --------------------------
+
+    slong shift[n];
+    for (i=0; i<n; i++)
+    {
+        shift[i]=ishift[i];
+    }
+    
+    nmod_poly_mat_pmbasis(PT, shift, AT, degmax*(min_nm +1)+1);
+
+
+    // Looking for zero residues and non zero residues
+    //  the global residue is reused later 
+    // -----------------------------------------------
+
+    nmod_poly_mat_t RT;
+    nmod_poly_mat_init(RT, n, m, A->modulus);
+    nmod_poly_mat_mul(RT,PT,AT);
+    
+    slong cdeg[n];
+    nmod_poly_mat_row_degree(cdeg, RT, NULL);
+
+    nmod_poly_mat_clear(AT);
+    nmod_poly_mat_clear(RT);
+
+
+    // Zero residue matrix P1  
+    //-----------------------
+
+    slong n1=0;
+
+    for (j=0; j<n; j++) {
+        if (cdeg[j]<0) {
+            n1+=1;
+        }
+    }
+
+
+    if (n1 > 0) {
+
+        k=0;
+        
+        for (j=0; j<n; j++) {
+
+            if (cdeg[j]<0) {
+                for (i = 0; i < n; i++)
+                    nmod_poly_set(nmod_poly_mat_entry(N, i, k), nmod_poly_mat_entry(PT, j, i));
+                k+=1;
+            }
+        }
+
+        nmod_poly_mat_clear(PT);
+        return n1;
+    }
+    
+    nmod_poly_mat_clear(PT);
+    return 0; 
 }
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */

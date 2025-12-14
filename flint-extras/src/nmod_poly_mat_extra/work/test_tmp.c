@@ -47,13 +47,13 @@ int main(int argc, char ** argv)
 
 
     slong i,j;
-    slong iz[rdim];
+    slong iz[cdim];
 
     
     slong degN[cdim];
 
-    for (i = 0; i < rdim; i++) 
-        iz[i]=0; 
+    for (i = 0; i < cdim; i++) 
+        iz[i]=order+1; 
 
     // Initial modification of A
 
@@ -79,11 +79,12 @@ int main(int argc, char ** argv)
 
 
     //printf("~~~~WARMUP~~~~\n");
-    nz=nmod_poly_mat_zls(N, degN, A, NULL, kappa);
+    nz=nmod_poly_mat_kernel(N, degN, A, NULL, kappa);
     //printf("~~~~WARMUP DONE~~~~\n");
 
     tt = clock();
-    nz=nmod_poly_mat_zls(N, degN, A, NULL, kappa);
+    nz=nmod_poly_mat_kernel(N, degN, A, NULL, kappa);
+    //nz=nmod_poly_mat_approximant_kernel(N, degN, A, iz);
     t += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
 
@@ -95,11 +96,12 @@ int main(int argc, char ** argv)
     double t2 = 0.0;
     tt = clock();
     nmod_poly_mat_nullspace(Nflint,A);
+    //nmod_poly_mat_approximant_kernel(N, degN, A, iz);
     t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
-    printf("N output \n");
-    nmod_poly_mat_print_pretty(N, "x");
-    printf("\n");
+    // printf("N output \n");
+    // nmod_poly_mat_print_pretty(N, "x");
+    // printf("\n");
 
     if (nz !=0) {
 
@@ -111,6 +113,10 @@ int main(int argc, char ** argv)
             for (j = 0; j < nz; j++) {
                 nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
             }
+
+// printf("Kernel -- \n");
+//     nmod_poly_mat_print_pretty(NN, "x");
+//     printf("\n");
 
             nmod_poly_mat_t Z;
             nmod_poly_mat_init(Z, rdim, nz, A->modulus);

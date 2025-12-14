@@ -52,7 +52,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
     slong degN[n];
 
-    nz=nmod_poly_mat_zls(N, degN, mat, NULL, 2);
+    nz=nmod_poly_mat_kernel(N, degN, mat, NULL, 2);
 
     int verif;
     verif =  (n-rkflint == nz);

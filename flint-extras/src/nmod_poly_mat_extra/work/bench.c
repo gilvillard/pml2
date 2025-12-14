@@ -55,7 +55,7 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     for (int i=0; i<nb_iter; i++)
     {
         timeit_start(timer1);
-        nmod_poly_mat_zls(N, degN, A, NULL, kappa);
+        nmod_poly_mat_kernel(N, degN, A, NULL, kappa);
         timeit_stop(timer1);
         t_pml += timer1->wall;
 

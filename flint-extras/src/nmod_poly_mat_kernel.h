@@ -52,8 +52,18 @@ extern "C" {
  * 
  */
 
-int nmod_poly_mat_zls(nmod_poly_mat_t N, slong *tshift, const nmod_poly_mat_t A, \
+int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A, \
                          const slong *ishift, const slong kappa); 
+
+
+
+/**
+ * Experimental, should not be really considered  
+ *
+ */
+
+int nmod_poly_mat_approximant_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A, \
+                                 const slong *ishift);
 
 
 #ifdef __cplusplus
