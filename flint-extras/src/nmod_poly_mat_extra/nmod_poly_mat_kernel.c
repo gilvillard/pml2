@@ -1,19 +1,7 @@
-#include <stdlib.h>
 #include <math.h> 
-#include <flint/nmod.h> 
-#include <flint/nmod_poly.h> 
-
 
 #include "nmod_poly_mat_extra.h"
-#include "nmod_poly_mat_io.h"
-
-#include "nmod_mat_extra.h"
 #include "nmod_poly_mat_kernel.h"
-
-
-#include <time.h>
-#include <flint/profiler.h>
-
 
 /**
  * 
@@ -502,6 +490,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
 
     nmod_poly_mat_t NT;
     nz=nmod_poly_mat_zls_sorted(NT, tdeg, A, sdeg, kappa);
+
 
     // Undo the permutation for the kernel of the input matrix
     // -------------------------------------------------------

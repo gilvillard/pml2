@@ -13,8 +13,7 @@
 #ifndef NMOD_POLY_MAT_KERNEL_H
 #define NMOD_POLY_MAT_KERNEL_H
 
-#include <flint/nmod_types.h>
-#include <flint/nmod_poly_mat.h>
+#include "pml.h"
 
 #ifdef __cplusplus
 extern "C" {
