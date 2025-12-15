@@ -108,6 +108,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         // printf("\n m > n  %ld  %ld",m,n);   // To see, rectangular case 
     }  
 
+
     slong s;
     s = ceil((double) rho/min_mn); 
 
@@ -215,6 +216,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
         if (n1==0) 
             return 0; 
         else {
+
             nmod_poly_mat_init_set(N,P1);
             nmod_poly_mat_column_degree(degN, P1, ishift);
 
@@ -303,7 +305,20 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     slong c1=0;
     slong c2=0;
 
+
+//++++++++++++++++++
+
+    printf("G1 shift\n [ ");
+    for (j=0; j<n2-1; j++) 
+          printf(" %ld, ",shift[j]);
+    printf(" %ld ]\n",shift[n2-1]);
+    printf("\n");
+
+
     c1=nmod_poly_mat_zls_sorted(N1, degN, G1, shift, kappa); 
+
+//++++++++++++
+    printf(" ****  c1= %ld \n",c1);
 
     if (c1 != 0) {
         
@@ -316,10 +331,23 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             shift[i]=degN[i];
         }
 
+
+//++++++++++++++++++
+
+    printf("G3 shift\n [ ");
+    for (j=0; j<c1-1; j++) 
+          printf(" %ld, ",shift[j]);
+    printf(" %ld ]\n",shift[c1-1]);
+    printf("\n");
+
+
         c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); 
         nmod_poly_mat_clear(G3);
 
     }
+
+
+printf(" *********************   c1= %ld   c2= %ld\n",c1,c2);
 
     nmod_poly_mat_clear(G1);
     nmod_poly_mat_clear(G2);
@@ -343,6 +371,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     // A new part of the kernel has been found by the recursive calls, Q
     // -----------------------------------------------------------------
+
 
     nmod_poly_mat_t Q1;
     nmod_poly_mat_init(Q1, n, c1, A->modulus);

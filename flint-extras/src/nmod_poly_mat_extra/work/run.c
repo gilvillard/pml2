@@ -1,4 +1,9 @@
+
+#include <stdio.h>   // pour FILE, fopen, fprintf, fclose
+#include <string.h>
 #include <stdlib.h>
+
+
 #include <math.h> 
 //#include <flint/profiler.h>
 #include <time.h>
@@ -11,142 +16,145 @@
 #include "nmod_poly_mat_kernel.h"
 
 
+void nmod_poly_mat_fprint_pretty(FILE *file, const nmod_poly_mat_t mat, const char * var)
+{
+    slong rdim = mat->r, cdim = mat->c;
+
+    flint_fprintf(file, "<%wd x %wd matrix over Z/nZ[%s]>\n", mat->r, mat->c, var);
+    flint_fprintf(file, "[");
+    for (slong i = 0; i < rdim; i++)
+    {
+        flint_fprintf(file, "[");
+        for (slong j = 0; j < cdim; j++)
+        {
+            nmod_poly_fprint_pretty(file,nmod_poly_mat_entry(mat, i, j), var);
+            if (j+1 < cdim)
+                flint_fprintf(file,", ");
+        }
+        if (i != rdim -1)
+            flint_fprintf(file,"],\n");
+        else
+            flint_fprintf(file,"]");
+    }
+    flint_fprintf(file,"]\n");
+}
+
+
 int main(int argc, char ** argv)
 {
-    printf("Usage: %s OR %s [nbits] [rdim] [cdim] [degree] [kappa]\n--\n", argv[0], argv[0]);
-
-    // disable line buffering
-    setbuf(stdout, NULL);
-
-    slong nbits = atoi(argv[1]);
-    slong rdim = atoi(argv[2]);
-    slong cdim = atoi(argv[3]);
-    slong order = atoi(argv[4]);
-    slong kappa = atoi(argv[5]);
 
     flint_rand_t state;
     flint_rand_init(state);
     srand(time(NULL));
     flint_rand_set_seed(state, rand(), rand());
 
+    int i,j;
 
-    slong prime = n_randprime(state, nbits, 1);
+    slong prime = 7; 
 
 
     nmod_poly_mat_t A;
-    nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.8);
+    slong m=31;
+    slong n=32;
+    slong deg=2;
 
 
+    slong rkflint;
     nmod_poly_mat_t N; 
-    nmod_poly_mat_init(N, cdim, cdim, A->modulus);
-
-    printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\tcdim = %ld,\
-        \n\tdegree = %ld, \n\tkappa = %ld ...\n",prime,rdim,cdim,order,kappa);
-
-
-    slong i,j;
-    slong iz[cdim];
-
-    
-    slong degN[cdim];
-
-    for (i = 0; i < cdim; i++) 
-        iz[i]=order+1; 
-
-    // Initial modification of A
-
-    //sortM(A,ishift,perm,iz);   
-
-
-    // printf("Permutation \n [ ");
-    // for (int j=0; j<cdim; j++) 
-    //     printf(" %ld, ",perm[j]);
-    // printf(" %ld ]\n",perm[cdim-1]);
-
-
-    // printf("A input \n");
-    // nmod_poly_mat_print_pretty(A, "x");
-    // printf("\n");
-
-
-    double t = 0.0;
-    clock_t tt;
-
+    nmod_poly_mat_init(N, n, n, prime);
 
     slong nz;
+    slong degN[n];
 
+    slong verif;
 
-    //printf("~~~~WARMUP~~~~\n");
-    nz=nmod_poly_mat_kernel(N, degN, A, NULL, kappa);
-    //printf("~~~~WARMUP DONE~~~~\n");
+    char namef[50];
 
-    tt = clock();
-    nz=nmod_poly_mat_kernel(N, degN, A, NULL, kappa);
-    //nz=nmod_poly_mat_approximant_kernel(N, degN, A, iz);
-    t += (double)(clock()-tt) / CLOCKS_PER_SEC;
+    FILE* file;
 
+    int nbfile = 0;
 
-    nmod_poly_mat_t Nflint;
-    nmod_poly_mat_init(Nflint, cdim, cdim, A->modulus);
     
-    nmod_poly_mat_nullspace(Nflint,A);
+    printf("Launching  with\n\tprime = %ld,\n\tm = %ld,\n\tm = %ld,\
+        \n\tdegree = %ld ...\n",prime,m, n, deg);
+
+    // NB runs
+    slong K=100000;
+
+    for (int k=0; k<K; k++) {
+
+
+    printf("\n\n\n\n\n\n\n");
+    printf("\n\n\n\n\n\n\n");
+
+    printf("\n=====================================================================\n\n");
+
+
+        nmod_poly_mat_init(A, m,n , prime);
+
+        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
+
+        sprintf(namef, "resultat_%d.txt", nbfile);
+
+        file = fopen(namef, "w");
+
+        flint_fprintf(file,"A input \n");
+        nmod_poly_mat_fprint_pretty(file, A, "x");
+
+        fprintf(file,"\n");
+        fclose(file);
+
+
+        rkflint=nmod_poly_mat_rank(A);
     
-    double t2 = 0.0;
-    tt = clock();
-    nmod_poly_mat_nullspace(Nflint,A);
-    //nmod_poly_mat_approximant_kernel(N, degN, A, iz);
-    t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
+        nz=nmod_poly_mat_kernel(N, degN, A, NULL, 2);
 
-    // printf("N output \n");
-    // nmod_poly_mat_print_pretty(N, "x");
-    // printf("\n");
+        verif =  (n-rkflint == nz);
 
-    if (nz !=0) {
+        if (nz !=0) {
 
-        nmod_poly_mat_t NN; 
-        nmod_poly_mat_init(NN, cdim, nz, A->modulus);
+            nmod_poly_mat_t NN; 
+            nmod_poly_mat_init(NN, n, nz, prime);
 
-
-        for (i = 0; i < cdim; i++)
-            for (j = 0; j < nz; j++) {
-                nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < nz; j++) {
+                    nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
+                }
             }
 
-// printf("Kernel -- \n");
-//     nmod_poly_mat_print_pretty(NN, "x");
-//     printf("\n");
-
             nmod_poly_mat_t Z;
-            nmod_poly_mat_init(Z, rdim, nz, A->modulus);
+            nmod_poly_mat_init(Z, m, nz, prime);
 
             nmod_poly_mat_mul(Z, A, NN);
 
-        if (nmod_poly_mat_is_zero(Z) !=0) 
-        {
-            printf("\n Nullspace of dimension %ld, time: %f, time flint: %f, ratio: %f\n\n",nz,t,t2,(double) t2/t);
-            return 1;
+            verif = verif && nmod_poly_mat_is_zero(Z); 
+
+            nmod_poly_mat_clear(Z);
+            nmod_poly_mat_clear(NN);
+
         }
 
-    }
-    else {
 
-        printf("\n Nullspace of dimension %ld, time: %f, time flint: %f, ratio: %f\n\n",nz,t,t2,t2/t);
+        if (!verif) {
+            printf("Failed with\n\tprime = %ld,\n\tm = %ld,\n\tm = %ld,\
+                n\tdegree = %ld ...\n",prime,m, n, deg);
 
-    }
+            printf("   nz= %ld, nullity= %ld\n",nz,n-rkflint);
+
+            printf("nbfile %d, k: %d\n\n",nbfile,k);
+
+            nbfile+=1;
+
+            k=K+1;
+        }
 
 
-   
+    } // End of main loop 
 
-    // printf("Nflint output \n");
-    // nmod_poly_mat_print_pretty(Nflint, "x");
-    // printf("\n")
     
 
-    nmod_poly_mat_clear(A);
-
-    flint_rand_clear(state);
+    return 0;
 
 }
 
