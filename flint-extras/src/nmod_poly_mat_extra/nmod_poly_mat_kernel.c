@@ -239,34 +239,21 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     }
 
 
-    nmod_poly_mat_t TT;
-    nmod_poly_mat_init(TT, m, n2, A->modulus);
 
-    // We extract G (temporary TT) from RT as we have been extracting P2 from PT
-    //   and apply above ordering of P2 
-    k=0;
-    for (j = 0; j < n; j++)
-    {
-        if (cdeg[j]>=0) {
-
-            for (i = 0; i < m; i++)
-                nmod_poly_set(nmod_poly_mat_entry(TT, i, k), nmod_poly_mat_entry(RT, j, i));
-            k+=1;
-        }
-
-    }
-    nmod_poly_mat_clear(RT);
-
-    nmod_poly_mat_permute_columns(TT, perm, NULL);
+    //+++++++++ OLD 
 
     nmod_poly_mat_t G;
     nmod_poly_mat_init(G, m, n2, A->modulus);
 
-    nmod_poly_mat_shift_right(G,TT,kappa*s);
-    
+    nmod_poly_mat_mul(G, A, P2);
 
-    // We split G for the recursive call
-    // ---------------------------------
+    nmod_poly_mat_t TT;
+    nmod_poly_mat_init(TT, m, n2, A->modulus);
+
+
+    
+    nmod_poly_mat_shift_right(TT,G,kappa*s);
+    
 
     slong new_m=floor((double) m/2);
 
@@ -275,7 +262,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     for (i = 0; i < new_m; i++){
         for (j = 0; j < n2; j++) {
-            nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(G, i, j));
+            nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(TT, i, j));
         }
     }
 
@@ -284,13 +271,67 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     for (i = 0; i < m-new_m; i++) {
         for (j = 0; j < n2; j++) {
-            nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(G, i+new_m, j));
+            nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(TT, i+new_m, j));
         }
     }
 
-    nmod_poly_mat_clear(TT);
-    nmod_poly_mat_clear(G);
 
+    //++++++++  END OLD 
+
+
+    //++++++++++ NEW ++++++++++++++
+    // nmod_poly_mat_t TT;
+    // nmod_poly_mat_init(TT, m, n2, A->modulus);
+
+    // // We extract G (temporary TT) from RT as we have been extracting P2 from PT
+    // //   and apply above ordering of P2 
+    // k=0;
+    // for (j = 0; j < n; j++)
+    // {
+    //     if (cdeg[j]>=0) {
+
+    //         for (i = 0; i < m; i++)
+    //             nmod_poly_set(nmod_poly_mat_entry(TT, i, k), nmod_poly_mat_entry(RT, j, i));
+    //         k+=1;
+    //     }
+
+    // }
+    // nmod_poly_mat_clear(RT);
+
+    // nmod_poly_mat_permute_columns(TT, perm, NULL);
+
+    // nmod_poly_mat_t G;
+    // nmod_poly_mat_init(G, m, n2, A->modulus);
+
+    // nmod_poly_mat_shift_right(G,TT,kappa*s);
+    
+
+    // // We split G for the recursive call
+    // // ---------------------------------
+
+    // slong new_m=floor((double) m/2);
+
+    // nmod_poly_mat_t G1;
+    // nmod_poly_mat_init(G1, new_m, n2, A->modulus);
+
+    // for (i = 0; i < new_m; i++){
+    //     for (j = 0; j < n2; j++) {
+    //         nmod_poly_set(nmod_poly_mat_entry(G1, i, j), nmod_poly_mat_entry(G, i, j));
+    //     }
+    // }
+
+    // nmod_poly_mat_t G2;
+    // nmod_poly_mat_init(G2, m-new_m, n2, A->modulus);
+
+    // for (i = 0; i < m-new_m; i++) {
+    //     for (j = 0; j < n2; j++) {
+    //         nmod_poly_set(nmod_poly_mat_entry(G2, i, j), nmod_poly_mat_entry(G, i+new_m, j));
+    //     }
+    // }
+
+    // nmod_poly_mat_clear(TT);
+    // nmod_poly_mat_clear(G);
+    //++++++++++++++  END NEW ++++++++++++++++++
 
     // Recursive calls 
     // ---------------
