@@ -27,5 +27,8 @@ run:	$(CHK)
 bench: bench.c 
 	$(CC) -o bench bench.c $(BFLAGS)  
 
+run: run.c 
+	$(CC) -o run run.c $(BFLAGS)  
+
 %.chk:
 	if test -e test_$*; then ./test_$* > $*.chk; fi
