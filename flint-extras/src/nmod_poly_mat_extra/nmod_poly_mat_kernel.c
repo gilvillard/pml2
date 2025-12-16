@@ -113,6 +113,8 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     s = ceil((double) rho/min_mn); 
 
    
+   printf("rho %ld %ld %ld\n",rho,kappa*s+1,s);
+
     // Transposed A for the approximant PT on the left 
     // PT will then be use without transposing 
 
@@ -127,13 +129,15 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     // shift is modified in place 
     // --------------------------
 
-    slong shift[n];
+    slong shift[n]; // temporary variable 
     for (i=0; i<n; i++)
     {
         shift[i]=ishift[i];
     }
     
-    nmod_poly_mat_pmbasis(PT, shift, AT, kappa*s+1);
+    slong ks;
+    ks=ceil((double) (kappa*(1))*s); 
+    nmod_poly_mat_pmbasis(PT, shift, AT, ks+1);
 
     // Looking for zero residues and non zero residues
     //  the global residue is reused later 
@@ -203,7 +207,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     }
 
-    nmod_poly_mat_clear(PT);
+    //nmod_poly_mat_clear(PT);
 
     //  Special case m=1
     //  before the divide and conquer on m
@@ -232,12 +236,14 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     slong * perm = flint_malloc(n2 * sizeof(slong));
 
-    _nmod_poly_mat_sort_permute_columns_zls(P2,degN,perm,ishift);
+
+    slong degP2[n2];
+
+    _nmod_poly_mat_sort_permute_columns_zls(P2,degP2,perm,ishift);
 
     for (i = 0; i < n2; i++) {
-        degN[i]=degN[i]-kappa*s;  // used below for the recursive calls 
+        degP2[i]=degP2[i]-ks;  // used below for the recursive calls 
     }
-
 
 
     //+++++++++ OLD 
@@ -251,8 +257,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_init(TT, m, n2, A->modulus);
 
 
-    
-    nmod_poly_mat_shift_right(TT,G,kappa*s);
+    nmod_poly_mat_shift_right(TT,G,ks);
     
 
     slong new_m=floor((double) m/2);
@@ -336,10 +341,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     // Recursive calls 
     // ---------------
 
-    for (i=0; i<n2; i++) {
-        shift[i]=degN[i]; // for input n the first recursive call and degN in output 
-    }
-
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
@@ -351,12 +352,12 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     printf("G1 shift\n [ ");
     for (j=0; j<n2-1; j++) 
-          printf(" %ld, ",shift[j]);
-    printf(" %ld ]\n",shift[n2-1]);
+          printf(" %ld, ",degP2[j]);
+    printf(" %ld ]\n", degP2[n2-1]);
     printf("\n");
 
 
-    c1=nmod_poly_mat_zls_sorted(N1, degN, G1, shift, kappa); 
+    c1=nmod_poly_mat_zls_sorted(N1, degN, G1, degP2, kappa); 
 
 //++++++++++++
     printf(" ****  c1= %ld \n",c1);
@@ -453,7 +454,7 @@ printf(" *********************   c1= %ld   c2= %ld\n",c1,c2);
             }
         }
 
-        slong odeg[n1+c2]; // Too big, to see
+        slong odeg[n1+c2]; 
 
         nmod_poly_mat_column_degree(odeg, P1, ishift);
 

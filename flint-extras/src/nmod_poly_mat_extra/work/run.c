@@ -50,13 +50,13 @@ int main(int argc, char ** argv)
 
     int i,j;
 
-    slong prime = 7; 
+    slong prime = 2; 
 
 
     nmod_poly_mat_t A;
 
-    slong m=31;
-    slong n=32;
+    slong m=10;
+    slong n=11;
     slong deg=2;
 
 
