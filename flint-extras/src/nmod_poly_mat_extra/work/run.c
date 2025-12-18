@@ -55,8 +55,8 @@ int main(int argc, char ** argv)
 
     nmod_poly_mat_t A;
 
-    slong m=10;
-    slong n=11;
+    slong m=32;
+    slong n=33;
     slong deg=2;
 
 
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
         \n\tdegree = %ld ...\n",prime,m, n, deg);
 
     // NB runs
-    slong K=100000;
+    slong K=4;
 
     for (int k=0; k<K; k++) {
 

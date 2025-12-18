@@ -1,4 +1,5 @@
 #include <math.h> 
+#include <stdlib.h>
 
 #include "nmod_poly_mat_extra.h"
 #include "nmod_poly_mat_kernel.h"
@@ -28,6 +29,17 @@
  * 
  */
  
+
+ int cmp(const void *a, const void *b)
+{
+    const slong *x = a;
+    const slong *y = b;
+
+    if (*x < *y) return -1;
+    if (*x > *y) return 1;
+    return 0;
+}
+
 
 void _nmod_poly_mat_sort_permute_columns_zls(nmod_poly_mat_t M, slong *sdeg, \
                                             slong *perm, const slong *ishift)
@@ -94,6 +106,34 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     // Tuning the order of the subsequent approximant 
     // ----------------------------------------------
 
+    long shift[n]; // temporary variable 
+
+
+    // In order to sort for computing the order of the approximant 
+    for (i=0; i<n; i++)
+    {
+        shift[i]=ishift[i];
+    }
+
+    
+
+printf("------------   \n [ ");
+    for (j=0; j<n-1; j++) 
+          printf(" %ld, ",shift[j]);
+    printf(" %ld ]\n", shift[n-1]);
+    printf("\n");
+
+qsort(shift, n, sizeof(slong), cmp);
+
+
+    printf("\n [ ");
+    for (j=0; j<n-1; j++) 
+          printf(" %ld, ",shift[j]);
+    printf(" %ld ]\n", shift[n-1]);
+    printf("\n");
+
+
+
     if (m <= n) 
     {
         min_mn=m;
@@ -101,7 +141,7 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             rho+=ishift[i];   
     }
     else 
-    {
+    {   // No sort needed, we consider all degrees 
         min_mn=n;
         for (i=0; i<n; i++)   
             rho+=ishift[i];  
@@ -111,9 +151,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
     slong s;
     s = ceil((double) rho/min_mn); 
-
-   
-   printf("rho %ld %ld %ld\n",rho,kappa*s+1,s);
 
     // Transposed A for the approximant PT on the left 
     // PT will then be use without transposing 
@@ -129,7 +166,6 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     // shift is modified in place 
     // --------------------------
 
-    slong shift[n]; // temporary variable 
     for (i=0; i<n; i++)
     {
         shift[i]=ishift[i];
@@ -348,19 +384,8 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     slong c2=0;
 
 
-//++++++++++++++++++
-
-    printf("G1 shift\n [ ");
-    for (j=0; j<n2-1; j++) 
-          printf(" %ld, ",degP2[j]);
-    printf(" %ld ]\n", degP2[n2-1]);
-    printf("\n");
-
-
     c1=nmod_poly_mat_zls_sorted(N1, degN, G1, degP2, kappa); 
 
-//++++++++++++
-    printf(" ****  c1= %ld \n",c1);
 
     if (c1 != 0) {
         
@@ -373,23 +398,11 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
             shift[i]=degN[i];
         }
 
-
-//++++++++++++++++++
-
-    printf("G3 shift\n [ ");
-    for (j=0; j<c1-1; j++) 
-          printf(" %ld, ",shift[j]);
-    printf(" %ld ]\n",shift[c1-1]);
-    printf("\n");
-
-
         c2=nmod_poly_mat_zls_sorted(N2, degN, G3, shift, kappa); 
         nmod_poly_mat_clear(G3);
 
     }
 
-
-printf(" *********************   c1= %ld   c2= %ld\n",c1,c2);
 
     nmod_poly_mat_clear(G1);
     nmod_poly_mat_clear(G2);
