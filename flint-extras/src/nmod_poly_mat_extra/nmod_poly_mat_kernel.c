@@ -30,6 +30,7 @@
  */
  
 
+// Dummy function for qsort 
  int cmp(const void *a, const void *b)
 {
     const slong *x = a;

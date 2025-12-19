@@ -55,9 +55,9 @@ int main(int argc, char ** argv)
 
     nmod_poly_mat_t A;
 
-    slong m=62;
-    slong n=66;
-    slong deg=3;
+    slong m=8;
+    slong n=20;
+    slong deg=6;
 
 
     slong rkflint;
