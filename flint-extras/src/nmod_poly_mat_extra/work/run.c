@@ -55,9 +55,9 @@ int main(int argc, char ** argv)
 
     nmod_poly_mat_t A;
 
-    slong m=32;
-    slong n=33;
-    slong deg=2;
+    slong m=62;
+    slong n=66;
+    slong deg=3;
 
 
     slong rkflint;
@@ -80,15 +80,12 @@ int main(int argc, char ** argv)
         \n\tdegree = %ld ...\n",prime,m, n, deg);
 
     // NB runs
-    slong K=4;
+    slong K=10000;
 
     for (int k=0; k<K; k++) {
 
 
-    printf("\n\n\n\n\n\n\n");
-    printf("\n\n\n\n\n\n\n");
-
-    printf("\n=====================================================================\n\n");
+    printf("\n=== %d ===\n\n",k);
 
 
         nmod_poly_mat_init(A, m,n , prime);
@@ -108,7 +105,7 @@ int main(int argc, char ** argv)
 
         rkflint=nmod_poly_mat_rank(A);
     
-        nz=nmod_poly_mat_kernel(N, degN, A, NULL, 2);
+        nz=nmod_poly_mat_kernel(N, degN, A, NULL, 2.1);
 
         verif =  (n-rkflint == nz);
 
