@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
     Copyright (C) 2025 Gilles Villard
 
@@ -42,5 +43,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, const nmod_poly_mat_t M,
 
 /* -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 // vim:sts=4:sw=4:ts=4:et:sr:cino=>s,f0,{0,g0,(0,\:0,t0,+0,=s
+
 
 
