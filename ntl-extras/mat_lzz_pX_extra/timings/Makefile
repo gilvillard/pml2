@@ -2,6 +2,8 @@
 INC_DIR = ../../include
 LIB_DIR = ../../lib
 
+SYS_INC = /usr/local/include
+
 OBJS = $(wildcard $(LIB_DIR)/*)
 
 SRC = $(wildcard time*cpp)
@@ -11,11 +13,11 @@ COMPILE = $(patsubst %.cpp, %.exe, $(patsubst time_%, %, $(SRC)))
 RUN = $(patsubst %.cpp, %.dat, $(patsubst time_%, %, $(SRC)))
 
 CXX = g++
-CXXFLAGS = -Wall -std=c++11 -O3 -march=native -I$(INC_DIR)
-LIBS = -L/dsk/l1/vneiger/lib -L/usr/local/lib -lntl -lpthread -lgmp -lm
+CXXFLAGS = -Wall -std=c++11 -O3 -march=native -I$(INC_DIR) -I$(SYS_INC)
+LIBS = -L/usr/local/lib -L/opt/homebrew/lib -lntl -lpthread -lgmp -lm
 
 LBCXXFLAGS = -DHAVE_CONFIG_H -O2 -Wall -g -DNDEBUG -U_LB_DEBUG -DDISABLE_COMMENTATOR -fopenmp -fabi-version=6 -I/usr/local/include -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma
-LBLIBS = -L/usr/local/lib -lntl -lopenblas -lpthread -lgfortran -lgivaro -lgmp -lgmpxx -fopenmp
+LBLIBS = -L/usr/local/lib -L/opt/homebrew/lib -lntl -lopenblas -lpthread -lgfortran -lgivaro -lgmp -lgmpxx -fopenmp
 
 .PHONY: clean
 

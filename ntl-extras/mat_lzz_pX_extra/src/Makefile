@@ -2,13 +2,15 @@
 INC_DIR = ../../include
 LIB_DIR = ../../lib
 
+SYS_INC = /usr/local/include
+
 SOURCES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp, $(LIB_DIR)/%.o, $(SOURCES))
 
-THRESHOLDS_HEADERS = thresholds_waksman_evaluate thresholds_mp_naive_evaluate thresholds_plain_newton_geometric_mp_inv_trunc thresholds_lmultiplier thresholds_solve_lift
+THRESHOLDS_HEADERS = 
 
 CXX = g++
-CXXFLAGS = -Wall -std=c++11 -O3 -march=native -I$(INC_DIR) -g
+CXXFLAGS = -Wall -std=c++11 -O3 -march=native -I$(INC_DIR) -I$(SYS_INC) -g
 LIBS = -lntl -lgmp -lm
 .PHONY: clean
 
