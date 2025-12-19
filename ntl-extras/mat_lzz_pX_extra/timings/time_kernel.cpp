@@ -78,10 +78,10 @@ void one_bench_kernel(long rdim, long cdim, long deg)
         if (hermiteshift)
             for (long i = 1; i < rdim; ++i) // Hermite shift
                 shift[i] = shift[i-1] + cdim*deg;
-        tt = GetWallTime();
+        tt = _ntl_GetWallTime();
         Mat<zz_pX> kerbas;
         kernel_basis_zls_via_approximation(kerbas,pmat,shift);
-        t += GetWallTime()-tt;
+        t += _ntl_GetWallTime()-tt;
         ++nb_iter;
     }
     std::cout << t/nb_iter << "\t";
@@ -153,7 +153,7 @@ void run_bench(long nthreads, long nbits, bool fftprime, long rdim=-1, long cdim
         cout << zz_p::modulus() << ", bit length = " << nbits << endl;
     }
 
-    cout << "rdim\tcdim\tdeg\tdirect-app\tdirect-int\tzls-app\t\tzls-int" << endl;
+    cout << "rdim\tcdim\tdeg\tzls-app\t\tzls-int" << endl;
 
     if (rdim==-1) // means cdim==-1 and degree==-1 as well
     {
