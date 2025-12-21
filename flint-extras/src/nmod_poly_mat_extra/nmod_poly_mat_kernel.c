@@ -528,6 +528,9 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
     slong * perm = flint_malloc(n * sizeof(slong));
     slong sdeg[n];
 
+    slong shift[n];
+    slong dec;
+
     // No input shift, simply the column degrees, then ordered 
     //   a permutation is carried out in place
     // -------------------------------------------------------
@@ -539,11 +542,19 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
             if (sdeg[j] < 0) sdeg[j]=0;
 
         _nmod_poly_mat_permute_columns_by_sorting_vec(A, n, sdeg, perm);
+
+        dec=sdeg[n-1];
+
+        for (j=0; j<n; j++) {
+            shift[j]=dec;
+        }
+
+
     }
     // Input shift, we sort  
     // --------------------
     else {  
-
+        // !!!!!!!!!!!!!  TODO WITH SHIFT 
         for (j=0; j<n; j++) 
             sdeg[j]=ishift[j];
 
@@ -554,11 +565,13 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
     // -----------
 
     slong nz;
-    slong tdeg[n];
 
     nmod_poly_mat_t NT;
-    nz=nmod_poly_mat_zls_sorted(NT, tdeg, A, sdeg, kappa);
+    nz=nmod_poly_mat_zls_sorted(NT, degN, A, shift, kappa);
 
+    for (j=0; j<n; j++) {
+            degN[j]=degN[j]-dec;
+        }
 
     // Undo the permutation for the kernel of the input matrix
     // -------------------------------------------------------
@@ -568,7 +581,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
         for (k = 0; k < n; k++) {
             for (j = 0; j < nz; j++){
                 nmod_poly_set(nmod_poly_mat_entry(N, perm[k], j), nmod_poly_mat_entry(NT,k,j));
-                degN[perm[k]]=tdeg[k];
             }
         }
 

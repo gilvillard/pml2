@@ -114,9 +114,27 @@ int main(int argc, char ** argv)
                 nmod_poly_set(nmod_poly_mat_entry(NN, i, j), nmod_poly_mat_entry(N, i, j));
             }
 
-// printf("Kernel -- \n");
-//     nmod_poly_mat_print_pretty(NN, "x");
-//     printf("\n");
+        // ++++++++++++++++++++
+            printf("Kernel -- \n");
+            nmod_poly_mat_print_pretty(NN, "x");
+            printf("\n");
+
+            slong pivind[nz];
+
+            nmod_poly_mat_pivot_index(pivind,NN,NULL,COL_UPPER);
+
+            printf("Pivind \n [ ");
+            for (int j=0; j<nz-1; j++) 
+                printf(" %ld, ",pivind[j]);
+            printf(" %ld ]\n",pivind[nz-1]);
+
+            printf("degN \n [ ");
+            for (int j=0; j<nz-1; j++) 
+                printf(" %ld, ",degN[j]);
+            printf(" %ld ]\n",degN[nz-1]);
+
+        // +++++++++++++++++++
+
 
             nmod_poly_mat_t Z;
             nmod_poly_mat_init(Z, rdim, nz, A->modulus);
