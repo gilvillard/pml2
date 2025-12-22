@@ -180,6 +180,8 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     slong n1=0;
     slong n2;
 
+    slong pivind_P1[n];
+
     for (j=0; j<n; j++) {
         if (cdeg[j]<0) 
             n1+=1;
@@ -197,9 +199,15 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
 
                 for (i = 0; i < n; i++)
                     nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(PT, j, i));
+                pivind_P1[k]=j;
                 k+=1;
             }
         }
+
+        printf("Pivind_P1 \n [ ");
+            for (int j=0; j<n1-1; j++) 
+                printf(" %ld, ",pivind_P1[j]);
+            printf(" %ld ]\n",pivind_P1[n1-1]);
     }
     
     n2=n-n1;
@@ -428,6 +436,22 @@ int nmod_poly_mat_zls_sorted(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat
     nmod_poly_mat_clear(Q1);    
     nmod_poly_mat_clear(P2);
 
+
+    slong pivind_Q[c2];
+    nmod_poly_mat_pivot_index(pivind_Q,Q,ishift,COL_UPPER);
+
+
+    printf("Pivind_P1 \n [ ");
+            for (int j=0; j<n1-1; j++) 
+                printf(" %ld, ",pivind_P1[j]);
+            printf(" %ld ]\n",pivind_P1[n1-1]);
+
+    printf("Pivind_Q \n [ ");
+            for (int j=0; j<c2-1; j++) 
+                printf(" %ld, ",pivind_Q[j]);
+            printf(" %ld ]\n",pivind_Q[n2]);
+
+
     if (n1 ==0) {
 
         nmod_poly_mat_init_set(N,Q); // We should not need to copy 
@@ -572,6 +596,19 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t i
     for (j=0; j<n; j++) {
             degN[j]=degN[j]-dec;
         }
+
+    slong pivind[n];
+    
+    nmod_poly_mat_pivot_index(pivind,NT,NULL,COL_UPPER);
+
+            printf("Pivind +++ \n [ ");
+            for (int j=0; j<nz-1; j++) 
+                printf(" %ld, ",pivind[j]);
+            printf(" %ld ]\n",pivind[nz-1]);    
+
+printf("Kernel ++ \n");
+            nmod_poly_mat_print_pretty(NT, "x");
+            printf("\n");
 
     // Undo the permutation for the kernel of the input matrix
     // -------------------------------------------------------
