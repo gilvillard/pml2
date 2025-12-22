@@ -74,6 +74,13 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
         verif = verif && nmod_poly_mat_is_zero(Z); 
 
+
+        int is_weak_popov;
+
+        is_weak_popov=nmod_poly_mat_is_ordered_weak_popov(NN, NULL, COL_UPPER);
+
+        verif = verif && is_weak_popov;  
+
         nmod_poly_mat_clear(Z);
         nmod_poly_mat_clear(NN);
 

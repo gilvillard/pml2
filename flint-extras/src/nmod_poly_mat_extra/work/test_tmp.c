@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.4);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.2);
 
 
     nmod_poly_mat_t N; 
@@ -104,29 +104,29 @@ int main(int argc, char ** argv)
             // nmod_poly_mat_print_pretty(NN, "x");
             // printf("\n");
 
-printf("NN output 0\n");
-    nmod_poly_mat_print_pretty(NN, "x");
-    printf("\n");
+// printf("NN output 0\n");
+//     nmod_poly_mat_print_pretty(NN, "x");
+//     printf("\n");
 
             slong pivind[nz];
 
             nmod_poly_mat_pivot_index(pivind,NN,iz,COL_UPPER);
 
 
-printf("NN output \n");
-    nmod_poly_mat_print_pretty(NN, "x");
-    printf("\n");
+// printf("NN output \n");
+//     nmod_poly_mat_print_pretty(NN, "x");
+//     printf("\n");
 
 
-            printf("Pivind \n [ ");
-            for (int j=0; j<nz-1; j++) 
-                printf(" %ld, ",pivind[j]);
-            printf(" %ld ]\n",pivind[nz-1]);
+            // printf("Pivind \n [ ");
+            // for (int j=0; j<nz-1; j++) 
+            //     printf(" %ld, ",pivind[j]);
+            // printf(" %ld ]\n",pivind[nz-1]);
 
-            printf("degN \n [ ");
-            for (int j=0; j<nz-1; j++) 
-                printf(" %ld, ",degN[j]);
-            printf(" %ld ]\n",degN[nz-1]);
+            // printf("degN \n [ ");
+            // for (int j=0; j<nz-1; j++) 
+            //     printf(" %ld, ",degN[j]);
+            // printf(" %ld ]\n",degN[nz-1]);
 
 
             int is_weak_popov;

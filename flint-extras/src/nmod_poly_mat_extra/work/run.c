@@ -55,9 +55,9 @@ int main(int argc, char ** argv)
 
     nmod_poly_mat_t A;
 
-    slong m=20;
-    slong n=8;
-    slong deg=6;
+    slong m=90;
+    slong n=120;
+    slong deg=12;
 
 
     slong rkflint;
@@ -80,17 +80,17 @@ int main(int argc, char ** argv)
         \n\tdegree = %ld ...\n",prime,m, n, deg);
 
     // NB runs
-    slong K=100;
+    slong K=1000;
 
     for (int k=0; k<K; k++) {
 
 
-    printf("\n=== %d ===\n\n",k);
+    printf("\n=== %d ===\n",k);
 
 
         nmod_poly_mat_init(A, m,n , prime);
 
-        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.8);
+        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.1);
 
         sprintf(namef, "resultat_%d.txt", nbfile);
 
@@ -126,6 +126,15 @@ int main(int argc, char ** argv)
             nmod_poly_mat_mul(Z, A, NN);
 
             verif = verif && nmod_poly_mat_is_zero(Z); 
+
+            int is_weak_popov;
+
+            is_weak_popov=nmod_poly_mat_is_ordered_weak_popov(NN, NULL, COL_UPPER);
+
+            verif = verif && is_weak_popov;  
+
+
+            printf("\n %ld  %ld\n",nz,verif);
 
             nmod_poly_mat_clear(Z);
             nmod_poly_mat_clear(NN);

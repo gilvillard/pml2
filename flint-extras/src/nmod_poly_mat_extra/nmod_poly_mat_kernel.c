@@ -454,23 +454,10 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     }
     else {
 
-        if (n1 >0) {
-    printf("----  Pivind_P1 \n [ ");
-            for (int j=0; j<n1-1; j++) 
-                printf(" %ld, ",pivind_P1[j]);
-            printf(" %ld ]\n",pivind_P1[n1-1]);
-        }
-
-        printf("----  shift  \n [ ");
-            for (int j=0; j<n-1; j++) 
-                printf(" %ld, ",ishift[j]);
-            printf(" %ld ]\n",ishift[n-1]);
-        
-
-    printf("----  Pivind_Q \n [ ");
-            for (int j=0; j<c2-1; j++) 
-                printf(" %ld, ",pivind_Q[j]);
-            printf(" %ld ]\n",pivind_Q[c2-1]);
+    // printf("----  Pivind_Q \n [ ");
+    //         for (int j=0; j<c2-1; j++) 
+    //             printf(" %ld, ",pivind_Q[j]);
+    //         printf(" %ld ]\n",pivind_Q[c2-1]);
 
 
         nmod_poly_mat_init(N, n, n1+c2, A->modulus);
@@ -487,31 +474,30 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
             }
         }
 
-printf("N output \n");
-    nmod_poly_mat_print_pretty(N, "x");
-    printf("\n");
 
-    //+++++++
-    slong pivind_N[n1+c2];
-    nmod_poly_mat_pivot_index(pivind_N,N,ishift,COL_UPPER);
-    printf("----  Pivind_N \n [ ");
-            for (int j=0; j<n1+c2-1; j++) 
-                printf(" %ld, ",pivind_N[j]);
-            printf(" %ld ]\n",pivind_N[n1+c2-1]);
+        slong pivind_N[n1+c2];
+
+        nmod_poly_mat_pivot_index(pivind_N,N,ishift,COL_UPPER);
+
+        slong * perm = flint_malloc((n1+c2) * sizeof(slong));
+        _nmod_poly_mat_permute_columns_by_sorting_vec(N, n1+c2, pivind_N, perm);
+
 
         slong odeg[n1+c2]; 
 
-        nmod_poly_mat_column_degree(odeg, P1, input_shift); ///
+        nmod_poly_mat_column_degree(degN, N, input_shift); 
 
-        for (i=0; i<n1; i++) {
-            degN[i]=odeg[i];
-        }
+        // nmod_poly_mat_column_degree(odeg, P1, input_shift); ///
 
-        nmod_poly_mat_column_degree(odeg, Q, input_shift);/// 
+        // for (i=0; i<n1; i++) {
+        //     degN[i]=odeg[i];
+        // }
 
-        for (i=0; i<c2; i++) {
-            degN[i+n1]=odeg[i];
-        }
+        // nmod_poly_mat_column_degree(odeg, Q, input_shift);/// 
+
+        // for (i=0; i<c2; i++) {
+        //     degN[i+n1]=odeg[i];
+        // }
 
         nmod_poly_mat_clear(P1); 
         nmod_poly_mat_clear(Q); 
