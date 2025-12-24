@@ -90,7 +90,7 @@ int main(int argc, char ** argv)
 
         nmod_poly_mat_init(A, m,n , prime);
 
-        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.1);
+        nmod_poly_mat_randtest_sparse(A, state, deg+1, 0.3);
 
         sprintf(namef, "resultat_%d.txt", nbfile);
 

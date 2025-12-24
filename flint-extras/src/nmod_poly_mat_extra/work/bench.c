@@ -48,7 +48,8 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     long t_flint = 0; // time, in ms
     timeit_t timer1,timer2;
 
-    flint_printf("%ld\t%ld\t%ld\t|\t", rdim, cdim, deg);
+    flint_printf("q: %ld m: %ld\tn: %ld\td: %ld\tsp: %.1f |\t", \
+                    prime, rdim, cdim, deg, sparse);
 
     nb_iter = 4; t_pml = 0; t_flint = 0;
 
@@ -71,7 +72,7 @@ void benchmark_zls(ulong prime, slong rdim, slong cdim, ulong deg, double sparse
     double flint = (double)t_flint/nb_iter;
 
     //flint_printf("%0.1e\t%0.1e\t\t%f\t",
-    flint_printf("%.1f\t%.1f\t|\t%.1f\t",
+    flint_printf("%.1f\t%.2f\t|\t%.2f\t",
        (double)pml,
        (double)flint,
        (flint/pml));
@@ -111,7 +112,7 @@ int main(int argc, char ** argv)
     int m;
 
     for (m=20; m<100; m++) {
-        benchmark_zls(104729, m, m+20, 2, 1.0, 2, state);
+        benchmark_zls(3, m, m+1, 8, 0.4, 2, state);
     }
 
     flint_rand_clear(state);
