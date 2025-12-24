@@ -215,6 +215,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     ks=ceil((double) kappa*s); 
     nmod_poly_mat_pmbasis(PT, tmp_shift, AT, ks+1);
 
+
     // Looking for zero residues and non zero residues
     //  the global residue is reused later 
     // -----------------------------------------------
@@ -257,6 +258,25 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         }
     }
     
+    //++++++++
+    slong nb=0;
+
+    for (int j=0; j<n; j++) {
+
+        if (tmp_shift[j] < (ks+1))
+            nb+=1;
+    }
+
+    if (nb != n1) {
+        printf("*******   nb: %ld  n1: %ld \n\n",nb,n1);
+
+        printf("sigma: %ld  \n [ ",ks+1);
+        for (j=0; j<n-1; j++) 
+            printf(" %ld, ",tmp_shift[j]);
+        printf(" %ld ]\n\n",tmp_shift[n-1]);
+    }
+
+
     n2=n-n1;
 
     // the kernel is found 

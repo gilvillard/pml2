@@ -22,7 +22,7 @@ int main(int argc, char ** argv)
     slong rdim = atoi(argv[2]);
     slong cdim = atoi(argv[3]);
     slong order = atoi(argv[4]);
-    slong kappa = atoi(argv[5]);
+    double kappa = atof(argv[5]);
 
     flint_rand_t state;
     flint_rand_init(state);
@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_init(N, cdim, cdim, A->modulus);
 
     printf("Launching  with\n\tprime = %ld,\n\trdim = %ld,\n\tcdim = %ld,\
-        \n\tdegree = %ld, \n\tkappa = %ld ...\n",prime,rdim,cdim,order,kappa);
+        \n\tdegree = %ld, \n\tkappa = %.1f ...\n",prime,rdim,cdim,order,kappa);
 
 
     slong i,j;
