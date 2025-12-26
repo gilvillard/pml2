@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
     int m;
 
     for (m=20; m<100; m++) {
-        benchmark_zls(3, m, m+1, 8, 0.4, 2, state);
+        benchmark_zls(3, m, m+20, 2, 1.0, 2, state);
     }
 
     flint_rand_clear(state);

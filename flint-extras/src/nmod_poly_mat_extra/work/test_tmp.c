@@ -80,13 +80,21 @@ int main(int argc, char ** argv)
     
     //nmod_poly_mat_nullspace(Nflint,A);
     
+    slong nullflint;
+
     double t2 = 0.0;
     tt = clock();
-    //nmod_poly_mat_nullspace(Nflint,A);
+    nullflint=nmod_poly_mat_nullspace(Nflint,A);
     //nmod_poly_mat_approximant_kernel(N, degN, A, iz);
     t2 += (double)(clock()-tt) / CLOCKS_PER_SEC;
 
     
+    if (nz != nullflint){
+
+        printf("\n Differ from flint\n");
+            return 0;
+
+    }
 
     if (nz !=0) {
 

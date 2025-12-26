@@ -214,29 +214,18 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     ks=ceil((double) kappa*s); 
     nmod_poly_mat_pmbasis(PT, tmp_shift, AT, ks+1);
 
-
-    // Looking for zero residues and non zero residues
-    //  the global residue is reused later 
-    // -----------------------------------------------
-
-    nmod_poly_mat_t RT;
-    nmod_poly_mat_init(RT, n, m, A->modulus);
-    nmod_poly_mat_mul(RT,PT,AT);
-    
-    slong cdeg[n];
-    nmod_poly_mat_row_degree(cdeg, RT, NULL);
-
     nmod_poly_mat_clear(AT);
 
+    // Looking for zero residues and non zero residues
+    //
     // Zero residue matrix P1  n x n1 
-    // nonzero residues matrix P2  n x n2
-    //-----------------------------------
+    //-------------------------------------------------
 
     slong n1=0;
-    slong n2;
 
+    // Some are missed sometimes, check 
     for (j=0; j<n; j++) {
-        if (cdeg[j]<0) 
+        if (tmp_shift[j] < (ks+1)) 
             n1+=1;
     }
 
@@ -244,65 +233,17 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     if (n1>0) {
         nmod_poly_mat_init(P1, n, n1, A->modulus);
-
         k=0;
-        for (j = 0; j < n; j++)
-        {
-            if (cdeg[j]<0) {
+        for (int j=0; j<n; j++) {
 
+            if (tmp_shift[j] < (ks+1)) {
                 for (i = 0; i < n; i++)
                     nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(PT, j, i));
                 k+=1;
             }
         }
     }
-    
-    //++++++++
-    slong nb=0;
 
-    for (int j=0; j<n; j++) {
-
-        if (tmp_shift[j] < (ks+1))
-            nb+=1;
-    }
-
-    if (nb != n1) {
-        printf("*******   nb: %ld  n1: %ld \n\n",nb,n1);
-
-        printf("sigma: %ld  \n [ ",ks+1);
-        for (j=0; j<n-1; j++) 
-            printf(" %ld, ",tmp_shift[j]);
-        printf(" %ld ]\n\n",tmp_shift[n-1]);
-    }
-
-
-    n2=n-n1;
-
-    // the kernel is found 
-    if (n2==0) {
-        nmod_poly_mat_init_set(N,P1);
-        nmod_poly_mat_column_degree(degN, P1, input_shift); ///
-
-        nmod_poly_mat_clear(P1);
-        return n1;
-    }
-
-    nmod_poly_mat_t P2;
-    nmod_poly_mat_init(P2, n, n2, A->modulus);
-
-    k=0;
-    for (j = 0; j < n; j++)
-    {
-        if (cdeg[j]>=0) {
-
-            for (i = 0; i < n; i++)
-                nmod_poly_set(nmod_poly_mat_entry(P2, i, k), nmod_poly_mat_entry(PT, j, i));
-            k+=1;
-        }
-
-    }
-
-    //nmod_poly_mat_clear(PT);
 
     //  Special case m=1
     //  before the divide and conquer on m
@@ -323,6 +264,42 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         }
     }
 
+
+    // Nonzero residue matrix P2  n x n2
+    //-----------------------------------
+
+
+    slong n2;
+
+    n2=n-n1;
+
+    // the kernel is found, dummy n2=0
+    if (n2==0) {
+        nmod_poly_mat_init_set(N,P1);
+        nmod_poly_mat_column_degree(degN, P1, input_shift); ///
+
+        nmod_poly_mat_clear(P1);
+        return n1;
+    }
+
+    nmod_poly_mat_t P2;
+    nmod_poly_mat_init(P2, n, n2, A->modulus);
+
+    k=0;
+    for (j = 0; j < n; j++)
+    {
+        if (tmp_shift[j] >= (ks+1)) {
+
+            for (i = 0; i < n; i++)
+                nmod_poly_set(nmod_poly_mat_entry(P2, i, k), nmod_poly_mat_entry(PT, j, i));
+            k+=1;
+        }
+
+    }
+
+    nmod_poly_mat_clear(PT);
+
+
     //  Now n2 <> 0 and m > 1
     //    one can proceed to the divide and conquer from the rows 
     //    of the nonzero residue P2, and of A.P2
@@ -336,30 +313,22 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         degP2[i]=degP2[i]-ks;  // used below for the recursive calls 
     }
 
-    nmod_poly_mat_t TT;
-    nmod_poly_mat_init(TT, m, n2, A->modulus);
 
-    // We extract G (temporary TT) from RT as we have been extracting P2 from PT
-    //   and apply above ordering of P2 
-    k=0;
-    for (j = 0; j < n; j++)
-    {
-        if (cdeg[j]>=0) {
+    nmod_poly_mat_t Residue;
+    nmod_poly_mat_init(Residue, m, n2, A->modulus);
+    nmod_poly_mat_mul(Residue, A, P2);
 
-            for (i = 0; i < m; i++)
-                nmod_poly_set(nmod_poly_mat_entry(TT, i, k), nmod_poly_mat_entry(RT, j, i));
-            k+=1;
-        }
 
-    }
-
-    nmod_poly_mat_clear(RT);
+    //nmod_poly_mat_clear(RT);
 
     nmod_poly_mat_t G;
     nmod_poly_mat_init(G, m, n2, A->modulus);
 
-    nmod_poly_mat_shift_right(G,TT,ks);
-    nmod_poly_mat_clear(TT);
+    nmod_poly_mat_shift_right(G, Residue, ks);
+
+
+    nmod_poly_mat_clear(Residue);
+
 
     // We split G for the recursive call
     // ---------------------------------
