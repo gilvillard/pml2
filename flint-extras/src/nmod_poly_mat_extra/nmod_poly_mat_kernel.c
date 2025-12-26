@@ -127,17 +127,17 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     nmod_poly_mat_column_degree(sdeg, A, NULL);
     
-    // for (j=0; j<n; j++) {  // needed at some point, not 100% clear 
-    //     if (sdeg[j] < 0) sdeg[j]=0;
-    // }
+    for (j=0; j<n; j++) {  // to prevent values -1 with zero columns in the shift 
+        if (sdeg[j] < 0) sdeg[j]=0;
+    }
 
     slong ishift[n];
     slong delta;
 
     if (input_shift == NULL) {
 
-        delta=1; // will be the maximum degree, to prevent values -1 with zero columns   
-        for (j=0; j<n; j++) {
+        delta=sdeg[0]; // will be the maximum degree,    
+        for (j=1; j<n; j++) {
             if (sdeg[j] > delta) delta=sdeg[j];
         }
 
@@ -152,8 +152,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         for (j=1; j<n; j++) {
             if ((sdeg[j]-input_shift[j]) > delta) delta=sdeg[j]-input_shift[j];
         }
-
-        delta+=1; // o prevent values -1 with zero columns   
+  
         for (j=0; j<n; j++) {
             ishift[j]=input_shift[j]+delta;
         }
