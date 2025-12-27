@@ -123,7 +123,8 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     //    we add delta to input_shift 
     // ----------------------------------------------------------
 
-    slong sdeg[n];
+
+    slong sdeg[n];  // re-used later 
 
     nmod_poly_mat_column_degree(sdeg, A, NULL);
     
@@ -231,6 +232,9 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     nmod_poly_mat_t P1;
 
+    slong mcmillan_A=0;
+    slong mcmillan_ker=0;
+
     if (n1>0) {
         nmod_poly_mat_init(P1, n, n1, A->modulus);
         k=0;
@@ -240,11 +244,28 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
                 for (i = 0; i < n; i++)
                     nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(PT, j, i));
                 k+=1;
+                mcmillan_ker+=nmod_poly_degree(nmod_poly_mat_entry(PT, j, j));
+            }
+            else {
+                mcmillan_A+=sdeg[j];
             }
         }
+
+        if (mcmillan_A == mcmillan_ker) {
+
+            //printf("\n %ld x %ld   McMillan A: %ld   McMillan ker: %ld  \
+              //  n1: %ld \n",m,n,mcmillan_A,mcmillan_ker,n1);
+
+            nmod_poly_mat_init_set(N,P1);
+            nmod_poly_mat_column_degree(degN, P1, input_shift); ///
+
+            nmod_poly_mat_clear(P1);
+            return n1;
+
+        }
+
     }
-
-
+    
     //  Special case m=1
     //  before the divide and conquer on m
     //  the kernel is found 
@@ -273,7 +294,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     n2=n-n1;
 
-    // the kernel is found, dummy n2=0
+    //the kernel is found, dummy n2=0  test zero matrix 
     if (n2==0) {
         nmod_poly_mat_init_set(N,P1);
         nmod_poly_mat_column_degree(degN, P1, input_shift); ///
@@ -324,7 +345,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     nmod_poly_mat_t G;
     nmod_poly_mat_init(G, m, n2, A->modulus);
 
-    nmod_poly_mat_shift_right(G, Residue, ks);
+    nmod_poly_mat_shift_right(G, Residue, ks+1);
 
 
     nmod_poly_mat_clear(Residue);
