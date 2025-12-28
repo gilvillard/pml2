@@ -83,6 +83,7 @@ int core_test_kernel(const nmod_poly_mat_t mat)
 
         nmod_poly_mat_clear(Z);
         nmod_poly_mat_clear(NN);
+        //nmod_poly_mat_clear(N);
 
     }
     
