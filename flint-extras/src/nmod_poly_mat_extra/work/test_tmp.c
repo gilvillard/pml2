@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     nmod_poly_mat_t A;
     nmod_poly_mat_init(A, rdim, cdim, prime);
 
-    nmod_poly_mat_randtest_sparse(A, state, order+1, 0.9);
+    nmod_poly_mat_randtest_sparse(A, state, order+1, 1.0);
     //nmod_poly_mat_randtest(A, state, order+1);
 
     nmod_poly_mat_t N; 
