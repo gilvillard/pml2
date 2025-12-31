@@ -271,6 +271,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
             //printf("\n %ld x %ld   McMillan A: %ld   McMillan ker: %ld  \
               //  n1: %ld \n",m,n,mcmillan_A,mcmillan_ker,n1);
 
+            //nmod_poly_mat_init_set(N,P1); 
             nmod_poly_mat_set(N,P1); 
             nmod_poly_mat_column_degree(degN, P1, input_shift); 
 
@@ -311,7 +312,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     //the kernel is found, dummy n2=0  test zero matrix 
     if (n2==0) {
-        
         nmod_poly_mat_set(N,P1); 
         nmod_poly_mat_column_degree(degN, P1, input_shift); 
 
@@ -390,9 +390,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
-    nmod_poly_mat_init(N1, n2, n2, A->modulus);
-    nmod_poly_mat_init(N2, n2, n2, A->modulus);
-
     slong c1=0;
     slong c2=0;
 
@@ -401,11 +398,11 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     c1=nmod_poly_mat_kernel(N1, sdeg_N1, G1, degP2, kappa); 
 
+
     if (c1 != 0) {
         
         nmod_poly_mat_t G3;
-        //nmod_poly_mat_init(G3, m-new_m, c1, A->modulus);
-        nmod_poly_mat_init(G3, m-new_m, n2, A->modulus);
+        nmod_poly_mat_init(G3, m-new_m, c1, A->modulus);
 
         nmod_poly_mat_mul(G3, G2, N1);
 
@@ -414,21 +411,10 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
             tmp_shift[i]=sdeg_N1[i];
         }
 
-        //+++++++
-
-        nmod_poly_mat_t TG3;
-        nmod_poly_mat_init(TG3, m-new_m, c1, A->modulus);
-
-        for (i=0; i<m-new_m; i++) {
-            for (j = 0; j < c1; j++)
-                nmod_poly_set(nmod_poly_mat_entry(TG3, i, j), nmod_poly_mat_entry(G3, i, j));
-        }
-
-        //++++++
-
-        c2=nmod_poly_mat_kernel(N2, sdeg_N2, TG3, tmp_shift, kappa); 
+        c2=nmod_poly_mat_kernel(N2, sdeg_N2, G3, tmp_shift, kappa); 
         nmod_poly_mat_clear(G3);
     }
+
 
     nmod_poly_mat_clear(G1);
     nmod_poly_mat_clear(G2);
@@ -445,7 +431,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
             nmod_poly_mat_column_degree(degN, P1, input_shift); 
 
             nmod_poly_mat_clear(P1);
-            nmod_poly_mat_clear(P2); //++++
+            nmod_poly_mat_clear(P2);
             return n1;
         }
     }
@@ -455,14 +441,12 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
 
     nmod_poly_mat_t Q1;
-    //nmod_poly_mat_init(Q1, n, c1, A->modulus);
-    nmod_poly_mat_init(Q1, n, n2, A->modulus);
+    nmod_poly_mat_init(Q1, n, c1, A->modulus);
 
     nmod_poly_mat_mul(Q1, P2, N1);
 
     nmod_poly_mat_t Q;
-    //nmod_poly_mat_init(Q, n, c2, A->modulus);
-    nmod_poly_mat_init(Q, n, n2, A->modulus);
+    nmod_poly_mat_init(Q, n, c2, A->modulus);
 
     nmod_poly_mat_mul(Q, Q1, N2);
 
@@ -475,7 +459,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     if (n1 ==0) {
 
         nmod_poly_mat_set(N,Q); // We should not need to copy 
-        nmod_poly_mat_column_degree(degN, Q, input_shift); /// verif degN has been initialized 
+        nmod_poly_mat_column_degree(degN, Q, input_shift); /// 
 
         nmod_poly_mat_clear(Q); 
         return c2;
@@ -508,8 +492,8 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
         nmod_poly_mat_column_degree(degN, N, input_shift); 
 
-        //nmod_poly_mat_clear(P1); 
-        //nmod_poly_mat_clear(Q); 
+        nmod_poly_mat_clear(P1); 
+        nmod_poly_mat_clear(Q); 
         
         return n1+c2;
 
