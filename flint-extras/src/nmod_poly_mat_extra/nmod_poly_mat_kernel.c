@@ -44,67 +44,27 @@
 
 /**
  *  
- *  Internal function 
- * 
- *  Right shifted kernel of a polynomial matrix, assuming that the columns has been 
- *     sorted by shifted degree 
- * 
+ *  Right kernel of a polynomial matrix, in shift-ordered weak Popov form
+ *   
  *  Algorithm of Wei Zhou, George Labahn, and Arne Storjohann
  *   "Computing Minimal Nullspace Bases"
  *    ISSAC 2012, https://dl.acm.org/doi/abs/10.1145/2442829.2442881
  * 
- *  TODO/TO SEE: 
- *    
- *  Input:
- *    A in m x n 
- *    ishift[n], NULL (the degrees are computed) or initialized outside, 
- *      the shift for the kernel   
- *      values should be at least 0 (even for zero columns in A
- *      "with entries arranged in non-decreasing order and bounding the 
- *       corresponding column degrees of A." 
- *    kappa, a double >= 2, for the order of the order bases 
- *              kappa * s instead of 3 *s in ZLS  
- * 
- *  Output:
- *    returns the dimension w of the kernel, which may be zero 
- *    N, n x w, is initialized here only when w > 0, 
- *           should be freed outside in that case only,
- *            gives a minimal basis of the right kernel   
- *    degN[n], initialized outside, its first w entries are concerned,
- *        they are the ishift shift degrees of the kernel basis 
- * 
- */
-
-
-/**
- *  
- *  Right shifted kernel of a polynomial matrix, assuming that the columns has been 
- *     sorted by shifted degree 
- * 
- *  Algorithm of Wei Zhou, George Labahn, and Arne Storjohann
- *   "Computing Minimal Nullspace Bases"
- *    ISSAC 2012, https://dl.acm.org/doi/abs/10.1145/2442829.2442881
- * 
- *  Calls nmod_poly_mat_zls_sorted after an initial sorting 
- * 
- *  TODO/TO SEE: 
+ *  TODO/TO SEE: ....
  *    
  * Input: 
- *    iA in m x n 
- *     ishift[n], NULL (the degrees are computed) or initialized outside, 
- *      the shift for the kernel    
- *      values should be at least 0 (even for zero columns in A
- *      "with entries arranged in non-decreasing order and bounding the 
- *       corresponding column degrees of A." 
- *    kappa, a double >= 2, for the order of the order bases 
- *              kappa * s instead of 3 *s in ZLS  
+ *     - A in m x n 
+ *     - input_shift[n], NULL (the degrees are computed) or initialized outside, 
+ *         the shift for the output kernel    
+ *     - kappa, a double >= 2, for the order of the approximant bases that are used 
+ *         i.e. we use kappa * s instead of 3s in ZLS  
  *
  *  Output:
- *    returns the dimension w of the kernel, which may be zero 
- *    N, is initialized  n x n outside  
- *       its first w columns give a minimal basis of the kernel   
- *    degN[n], initialized outside, its first w entries are concerned,
- *        they are the ishift shifted degrees of the kernel basis 
+ *    - returns the dimension w of the kernel, which may be zero 
+ *    - N is initialized n x w by the procedure if w >0,  
+ *       its w columns give a minimal basis of the kernel   
+ *    - degN[n], initialized outside, its first w entries are concerned,
+ *        they are the shifted degrees of the kernel basis 
  * 
  */
 
@@ -236,17 +196,28 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     slong mcmillan_ker=0;
 
     if (n1>0) {
+
         nmod_poly_mat_init(P1, n, n1, A->modulus);
+
         k=0;
         for (int j=0; j<n; j++) {
 
             if (tmp_shift[j] < (ks+1)) {
                 for (i = 0; i < n; i++)
                     nmod_poly_set(nmod_poly_mat_entry(P1, i, k), nmod_poly_mat_entry(PT, j, i));
+
+                // Directly used in output for the P1 part 
+                if (input_shift==NULL)
+                    degN[k]=nmod_poly_degree(nmod_poly_mat_entry(PT, j, j));
+                else 
+                    degN[k]=nmod_poly_degree(nmod_poly_mat_entry(PT, j, j))+input_shift[j];
+
                 k+=1;
+
                 mcmillan_ker+=nmod_poly_degree(nmod_poly_mat_entry(PT, j, j));
             }
             else {
+
                 mcmillan_A+=sdeg[j];
             }
         }
@@ -257,8 +228,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
               //  n1: %ld \n",m,n,mcmillan_A,mcmillan_ker,n1);
 
             nmod_poly_mat_init_set(N,P1);
-            nmod_poly_mat_column_degree(degN, P1, input_shift); ///
-
             nmod_poly_mat_clear(P1);
             return n1;
 
@@ -269,6 +238,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     //  Special case m=1
     //  before the divide and conquer on m
     //  the kernel is found 
+    //  degN already assigned
     // -----------------------------------
 
     if (m==1){  
@@ -276,10 +246,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         if (n1==0) 
             return 0; 
         else {
-
             nmod_poly_mat_init_set(N,P1);
-            nmod_poly_mat_column_degree(degN, P1, input_shift); ///
-
             nmod_poly_mat_clear(P1);
             return n1;
         }
@@ -289,16 +256,16 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     // Nonzero residue matrix P2  n x n2
     //-----------------------------------
 
-
     slong n2;
 
     n2=n-n1;
 
     //the kernel is found, dummy n2=0  test zero matrix 
-    if (n2==0) {
-        nmod_poly_mat_init_set(N,P1);
-        nmod_poly_mat_column_degree(degN, P1, input_shift); ///
+    //  degN already assigned
 
+    if (n2==0) {
+
+        nmod_poly_mat_init_set(N,P1);
         nmod_poly_mat_clear(P1);
         return n1;
     }
@@ -324,19 +291,19 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     //  Now n2 <> 0 and m > 1
     //    one can proceed to the divide and conquer from the rows 
     //    of the nonzero residue P2, and of A.P2
-    // --------------------------------------------------------
+    // ----------------------------------------------------------
 
     slong degP2[n2];
-
     nmod_poly_mat_column_degree(degP2, P2, ishift);
 
     for (i = 0; i < n2; i++) {
-        degP2[i]=degP2[i]-ks;  // used below for the recursive calls 
+        degP2[i]=degP2[i]-ks;  // used below for a recursive call
     }
 
 
     nmod_poly_mat_t Residue;
     nmod_poly_mat_init(Residue, m, n2, A->modulus);
+
     nmod_poly_mat_mul(Residue, A, P2);
 
 
@@ -347,12 +314,13 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     nmod_poly_mat_shift_right(G, Residue, ks+1);
 
-
     nmod_poly_mat_clear(Residue);
 
 
     // We split G for the recursive call
     // ---------------------------------
+
+    printf("\n split %ld x %ld \n", m, n2);
 
     slong new_m=floor((double) m/2);
 
@@ -383,12 +351,13 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     nmod_poly_mat_t N1;
     nmod_poly_mat_t N2;
 
-    slong c1=0;
-    slong c2=0;
+    slong c1=0;  // dim of the kernel, first recursive call 
+    slong c2=0;  // dim of the kernel, second recursive call 
 
+    slong degN1[n2];
+    slong degN2[n2];
 
-    c1=nmod_poly_mat_kernel(N1, degN, G1, degP2, kappa); 
-
+    c1=nmod_poly_mat_kernel(N1, degN1, G1, degP2, kappa); 
 
     if (c1 != 0) {
         
@@ -397,14 +366,9 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
         nmod_poly_mat_mul(G3, G2, N1);
 
-        for (i=0; i<c1; i++) {
-            tmp_shift[i]=degN[i];
-        }
-
-        c2=nmod_poly_mat_kernel(N2, degN, G3, tmp_shift, kappa); 
+        c2=nmod_poly_mat_kernel(N2, degN2, G3, degN1, kappa); 
         nmod_poly_mat_clear(G3);
     }
-
 
     nmod_poly_mat_clear(G1);
     nmod_poly_mat_clear(G2);
@@ -418,8 +382,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
         }
         else {
             nmod_poly_mat_init_set(N,P1);
-            nmod_poly_mat_column_degree(degN, P1, input_shift); ///
-
+            
             nmod_poly_mat_clear(P1);
             nmod_poly_mat_clear(P2);
             return n1;
@@ -428,7 +391,6 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     // A new part of the kernel has been found by the recursive calls, Q
     // -----------------------------------------------------------------
-
 
     nmod_poly_mat_t Q1;
     nmod_poly_mat_init(Q1, n, c1, A->modulus);
@@ -448,7 +410,8 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
 
     if (n1 ==0) {
 
-        nmod_poly_mat_init_set(N,Q); // We should not need to copy 
+        nmod_poly_mat_init_set(N,Q); 
+
         nmod_poly_mat_column_degree(degN, Q, input_shift); /// 
 
         nmod_poly_mat_clear(Q); 
