@@ -320,7 +320,7 @@ int nmod_poly_mat_kernel(nmod_poly_mat_t N, slong *degN, const nmod_poly_mat_t A
     // We split G for the recursive call
     // ---------------------------------
 
-    printf("\n split %ld x %ld \n", m, n2);
+    //printf("\n split %ld x %ld \n", m, n2);
 
     slong new_m=floor((double) m/2);
 
